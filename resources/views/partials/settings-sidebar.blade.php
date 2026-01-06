@@ -1,0 +1,92 @@
+@php
+    $active = $active ?? null;
+    $isSettings = $isSettings ?? false;
+    $activeClasses = 'flex items-center gap-3 rounded-xl px-3 py-2 font-semibold text-blue-600 bg-blue-50 dark:bg-slate-800/70 dark:text-cyan-300';
+    $inactiveClasses = 'flex items-center gap-3 rounded-xl px-3 py-2 text-slate-700 hover:text-blue-600 hover:bg-slate-50 dark:text-slate-200 dark:hover:text-cyan-300 dark:hover:bg-slate-800/70';
+    $generalHref = $isSettings ? '#general' : '/settings#general';
+    $securityHref = $isSettings ? '#security' : '/settings#security';
+    $notificationsHref = $isSettings ? '#notifications' : '/settings#notifications';
+    $appearanceHref = $isSettings ? '#appearance' : '/settings#appearance';
+@endphp
+
+<aside class="space-y-6">
+    <x-card class="p-5">
+        <div class="text-xs font-semibold tracking-wide text-slate-500 dark:text-slate-300 uppercase mb-4">
+            Settings
+        </div>
+        <nav>
+            <ul role="list" class="space-y-1 text-sm">
+                <li>
+                    <a href="{{ $generalHref }}"
+                        @if ($isSettings) data-settings-tab aria-current="{{ $active === 'general' ? 'page' : 'false' }}" @endif
+                        class="{{ $active === 'general' ? $activeClasses : $inactiveClasses }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            data-slot="icon" aria-hidden="true" class="h-5 w-5">
+                            <path
+                                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        General
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ $securityHref }}"
+                        @if ($isSettings) data-settings-tab aria-current="{{ $active === 'security' ? 'page' : 'false' }}" @endif
+                        class="{{ $active === 'security' ? $activeClasses : $inactiveClasses }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            data-slot="icon" aria-hidden="true" class="h-5 w-5">
+                            <path
+                                d="M7.864 4.243A7.5 7.5 0 0 1 19.5 10.5c0 2.92-.556 5.709-1.568 8.268M5.742 6.364A7.465 7.465 0 0 0 4.5 10.5a7.464 7.464 0 0 1-1.15 3.993m1.989 3.559A11.209 11.209 0 0 0 8.25 10.5a3.75 3.75 0 1 1 7.5 0c0 .527-.021 1.049-.064 1.565M12 10.5a14.94 14.94 0 0 1-3.6 9.75m6.633-4.596a18.666 18.666 0 0 1-2.485 5.33"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        Security
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ $notificationsHref }}"
+                        @if ($isSettings) data-settings-tab aria-current="{{ $active === 'notifications' ? 'page' : 'false' }}" @endif
+                        class="{{ $active === 'notifications' ? $activeClasses : $inactiveClasses }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            data-slot="icon" aria-hidden="true" class="h-5 w-5">
+                            <path
+                                d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        Notifications
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ $appearanceHref }}"
+                        @if ($isSettings) data-settings-tab aria-current="{{ $active === 'appearance' ? 'page' : 'false' }}" @endif
+                        class="{{ $active === 'appearance' ? $activeClasses : $inactiveClasses }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            data-slot="icon" aria-hidden="true" class="h-5 w-5">
+                            <path d="m21 7.5-9-5.25L3 7.5m18 0-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        Appearance
+                    </a>
+                </li>
+                <li>
+                    <a href="/orders" class="{{ $active === 'orders' ? $activeClasses : $inactiveClasses }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            data-slot="icon" aria-hidden="true" class="h-5 w-5">
+                            <path d="M3 7h18M3 12h18M3 17h18" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        Orders
+                    </a>
+                </li>
+                <li>
+                    <a href="/wishlist" class="{{ $active === 'wishlist' ? $activeClasses : $inactiveClasses }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                            data-slot="icon" aria-hidden="true" class="h-5 w-5">
+                            <path d="M11.999 20.268c-1.697-1.44-5.09-4.128-7.064-6.102a4.5 4.5 0 0 1 6.364-6.364L12 8.503l.7-.701a4.5 4.5 0 0 1 6.364 6.364c-1.974 1.974-5.367 4.662-7.065 6.102Z"
+                                stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        Wishlist
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </x-card>
+</aside>
