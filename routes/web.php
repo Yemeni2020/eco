@@ -14,14 +14,6 @@ Route::get('/home', function () {
     return view('home');
 })->name('home');
 
-Route::view('admin/login', 'admin.auth.login')
-    ->middleware('guest')
-    ->name('admin.login');
-
-Route::view('admin', 'admin.dashboard')
-    ->middleware(['auth', 'verified', 'admin'])
-    ->name('admin');
-
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', 'settings/profile');
 
