@@ -1,11 +1,11 @@
 <x-layouts.app>
     @php
         $orderData = $order ?? [];
-        $orderNumber = $orderData['id'] ?? 'RCT-0000';
+        $orderNumber = $orderData['id'] ?? '';
         $items = $orderData['items'] ?? [];
-        $placedAt = $orderData['placed_at'] ?? '2021-03-22';
-        $contact = $orderData['contact'] ?? ['email' => '-', 'phone' => ''];
-        $payment = $orderData['payment'] ?? ['brand' => 'Card', 'last4' => '0000'];
+        $placedAt = $orderData['placed_at'] ?? null;
+        $contact = $orderData['contact'] ?? ['email' => '', 'phone' => ''];
+        $payment = $orderData['payment'] ?? ['brand' => '', 'last4' => ''];
         $total =
             $orderData['total'] ??
             array_reduce($items, fn($carry, $item) => $carry + ($item['price'] ?? 0) * ($item['qty'] ?? 1), 0);

@@ -1,12 +1,12 @@
 <x-layouts.app>
     @php
         $orderData = $order ?? [];
-        $orderNumber = $orderData['id'] ?? 'INV-0000';
+        $orderNumber = $orderData['id'] ?? '';
         $items = $orderData['items'] ?? [];
-        $placedAt = $orderData['placed_at'] ?? '2021-03-22';
+        $placedAt = $orderData['placed_at'] ?? null;
         $billingAddress = $orderData['billing_address'] ?? [];
         $shippingAddress = $orderData['shipping_address'] ?? $billingAddress;
-        $payment = $orderData['payment'] ?? ['brand' => 'Card', 'last4' => '0000'];
+        $payment = $orderData['payment'] ?? ['brand' => '', 'last4' => ''];
         $shipping = $orderData['shipping'] ?? 0;
         $tax = $orderData['tax'] ?? 0;
         $subtotal = array_reduce($items, fn($carry, $item) => $carry + ($item['price'] ?? 0) * ($item['qty'] ?? 1), 0);

@@ -1,21 +1,4 @@
 <x-layouts.app>
-    @php
-        $product = [
-            'name' => 'All-Weather Floor Mats Pro',
-            'category' => 'Interior',
-            'price' => 49.99,
-            'rating' => 4.8,
-            'reviews' => 124,
-            'image' => 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1600&q=80',
-            'summary' => 'Precision-cut heavy-duty mats that lock out mud, snow, and spills with a raised edge design.',
-            'features' => [
-                'Raised lip channels keep liquids contained and away from your carpet.',
-                'Anti-slip backing and heel pad reinforcement for extra grip.',
-                'Tailored fit for most sedans and SUVs with quick hose-down cleaning.',
-            ],
-        ];
-    @endphp
-
     <main class="bg-slate-50 min-h-screen">
         <section class="bg-slate-900 text-white py-14">
             <div class="container mx-auto px-4">

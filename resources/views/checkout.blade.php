@@ -34,6 +34,19 @@
         </style>
     @endpush
 
+    @php
+        $defaultAddressText = '';
+        if (!empty($defaultAddress)) {
+            $defaultAddressText = collect([
+                $defaultAddress->name,
+                $defaultAddress->phone,
+                $defaultAddress->city,
+                $defaultAddress->district,
+                $defaultAddress->street,
+            ])->filter()->implode(' - ');
+        }
+    @endphp
+
     
     <div id="applePayAlert"
         class="hidden relative isolate flex items-center gap-x-6 overflow-hidden bg-gray-800/50 px-6 py-2.5 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-white/10 sm:px-3.5 sm:before:flex-1">
@@ -84,9 +97,9 @@
                                 alt="logo">
                         </a>
                         <div>
-                            <h1 class="text-lg font-bold leading-6 text-slate-900">Osama Osama</h1>
+                            <h1 class="text-lg font-bold leading-6 text-slate-900">{{ config('app.name') }}</h1>
                             <div class="mt-1 text-xs text-slate-500">
-                                <a class="hover:text-slate-700" href="cart.html">Cart</a>
+                                <a class="hover:text-slate-700" href="{{ route('cart') }}">Cart</a>
                                 <span class="mx-2">/</span>
                                 <span class="text-slate-700">Checkout</span>
                             </div>
@@ -100,7 +113,8 @@
             <x-card
                 class="mt-5 rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_20px_50px_-40px_rgba(15,23,42,0.45)] ring-1 ring-slate-900/5">
                 <div class="p-6 flex flex-wrap items-center justify-between gap-2">
-                    <div class="text-xl font-extrabold text-slate-900">113.45 <span class="text-slate-400">SAR</span>
+                    <div class="text-xl font-extrabold text-slate-900">
+                        {{ number_format($totals['total'] ?? 0, 2) }} <span class="text-slate-400">SAR</span>
                     </div>
                     <div class="text-xl font-bold text-slate-900">Order total</div>
                 </div>
@@ -143,7 +157,7 @@
 
                 <div class="px-6 pb-6">
                     <div id="selectedAddressSummary" class="text-xs text-slate-500 mb-4">
-                        Commodo Magnam Facil - Saudi Arabia - Dammam - Al Khalidiyah North - Saad Bin Saud
+                        {{ $defaultAddressText }}
                     </div>
 
                     <div class="rounded-xl border border-slate-200/70 bg-white shadow-sm">
@@ -156,38 +170,52 @@
                         </div>
 
                         <div id="addressList" class="px-4 py-3 space-y-3">
-                            <label
-                                class="address-item is-active flex items-start justify-between gap-3 rounded-lg border border-slate-200/70 p-3"
-                                data-address="Saudi Arabia - Dammam - Al Khalidiyah North - Saad Bin Saud">
-                                <div class="flex items-start gap-3">
-                                    <input type="radio" name="address" checked
-                                        class="mt-1 accent-[color:var(--primary)]">
-                                    <span class="text-sm text-slate-700" data-address-text>
-                                        Saudi Arabia - Dammam - Al Khalidiyah North - Saad Bin Saud
-                                    </span>
-                                </div>
+                            @forelse ($addresses as $address)
+                                @php
+                                    $addressText = collect([
+                                        $address->name,
+                                        $address->phone,
+                                        $address->city,
+                                        $address->district,
+                                        $address->street,
+                                    ])->filter()->implode(' - ');
+                                @endphp
+                                <label
+                                    class="address-item {{ $address->is_default ? 'is-active' : '' }} flex items-start justify-between gap-3 rounded-lg border border-slate-200/70 p-3"
+                                    data-address="{{ $addressText }}">
+                                    <div class="flex items-start gap-3">
+                                        <input type="radio" name="address"
+                                            class="mt-1 accent-[color:var(--primary)]"
+                                            @checked($address->is_default)>
+                                        <span class="text-sm text-slate-700" data-address-text>
+                                            {{ $addressText }}
+                                        </span>
+                                    </div>
 
-                                <div class="flex items-center gap-3">
-                                    <button class="text-slate-500 hover:text-slate-800" aria-label="edit"
-                                        data-edit-address type="button">
-                                        <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none"
-                                            stroke="currentColor" stroke-width="1.7">
-                                            <path d="M12 20h9" />
-                                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                                        </svg>
-                                    </button>
-                                    <button class="text-red-500 hover:text-red-600" aria-label="delete"
-                                        data-delete-address type="button">
-                                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none"
-                                            stroke="currentColor" stroke-width="1.7">
-                                            <path d="M3 6h18" />
-                                            <path d="M8 6V4h8v2" />
-                                            <path d="M19 6l-1 16H6L5 6" />
-                                            <path d="M10 11v6M14 11v6" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </label>
+                                    <div class="flex items-center gap-3">
+                                        <button class="text-slate-500 hover:text-slate-800" aria-label="edit"
+                                            data-edit-address type="button">
+                                            <svg viewBox="0 0 24 24" class="h-4 w-4" fill="none"
+                                                stroke="currentColor" stroke-width="1.7">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+                                            </svg>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-600" aria-label="delete"
+                                            data-delete-address type="button">
+                                            <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none"
+                                                stroke="currentColor" stroke-width="1.7">
+                                                <path d="M3 6h18" />
+                                                <path d="M8 6V4h8v2" />
+                                                <path d="M19 6l-1 16H6L5 6" />
+                                                <path d="M10 11v6M14 11v6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </label>
+                            @empty
+                                <div class="text-sm text-slate-500">No saved addresses yet.</div>
+                            @endforelse
 
                             <button
                                 class="mt-4 w-full rounded-xl border border-slate-200/70 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 transition"
@@ -669,60 +697,38 @@
                 </div>
 
                 <div class="cart-drawer__content flex-1 overflow-hidden">
-                    <div class="cart-drawer__items h-full">
-                        <div class="cart-drawer__scroll-content h-full overflow-auto p-5 space-y-4">
-                            <!-- item -->
-                            <div class="cart-item flex gap-3">
-                                <div
-                                    class="cart-item__image relative h-14 w-14 overflow-hidden rounded-xl border border-[color:var(--line)] bg-white">
-                                    <img class="h-full w-full object-cover"
-                                        src="https://cdn.salla.sa/zvEDg/XxtyuVHPUfp7nGe7xyUPmfiUGqEqbSEzXGgDrabr.png"
-                                        alt="Smart Vlog Kit 4-in-1">
-                                    <div
-                                        class="cart-item__quantity-badge absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-[color:var(--primary)] text-xs font-bold text-white">
-                                        1</div>
-                                </div>
-                                <div class="cart-item__details flex-1">
-                                    <div class="cart-item__info">
-                                        <h4 class="cart-item__name text-sm font-semibold leading-6">
-                                            Smart Vlog Kit 4-in-1
-                                        </h4>
-                                        <div class="cart-item__meta text-xs text-slate-400 mt-1">
-                                            <span class="cart-item__specs"></span>
+                        <div class="cart-drawer__items h-full">
+                            <div class="cart-drawer__scroll-content h-full overflow-auto p-5 space-y-4">
+                                @forelse ($cartItems as $item)
+                                    <div class="cart-item flex gap-3">
+                                        <div
+                                            class="cart-item__image relative h-14 w-14 overflow-hidden rounded-xl border border-[color:var(--line)] bg-white">
+                                            <img class="h-full w-full object-cover" src="{{ $item['image'] ?? '' }}"
+                                                alt="{{ $item['name'] }}">
+                                            <div
+                                                class="cart-item__quantity-badge absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-[color:var(--primary)] text-xs font-bold text-white">
+                                                {{ $item['qty'] }}</div>
+                                        </div>
+                                        <div class="cart-item__details flex-1">
+                                            <div class="cart-item__info">
+                                                <h4 class="cart-item__name text-sm font-semibold leading-6">
+                                                    {{ $item['name'] }}
+                                                </h4>
+                                                <div class="cart-item__meta text-xs text-slate-400 mt-1">
+                                                    <span class="cart-item__specs"></span>
+                                                </div>
+                                            </div>
+                                            <div class="cart-item__bottom mt-2">
+                                                <div class="cart-item__price text-sm font-bold">
+                                                    {{ number_format($item['price'], 2) }} <small
+                                                        class="cart-item__currency text-slate-400">SAR</small>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="cart-item__bottom mt-2">
-                                        <div class="cart-item__price text-sm font-bold">
-                                            56.35 <small class="cart-item__currency text-slate-400">SAR</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- item -->
-                            <div class="cart-item flex gap-3">
-                                <div
-                                    class="cart-item__image relative h-14 w-14 overflow-hidden rounded-xl border border-[color:var(--line)] bg-white">
-                                    <img class="h-full w-full object-cover"
-                                        src="https://cdn.salla.sa/zvEDg/Wto2h6hhbNNWCqh7OsM0gZqPC5I157wqFmlpW5Qp.png"
-                                        alt="Home Sensor (TUYA)">
-                                    <div
-                                        class="cart-item__quantity-badge absolute -right-2 -top-2 grid h-6 w-6 place-items-center rounded-full bg-[color:var(--primary)] text-xs font-bold text-white">
-                                        1</div>
-                                </div>
-                                <div class="cart-item__details flex-1">
-                                    <div class="cart-item__info">
-                                        <h4 class="carMt-item__name text-sm font-semibold leading-6">
-                                            Home Sensor (TUYA)
-                                        </h4>
-                                    </div>
-                                    <div class="cart-item__bottom mt-2">
-                                        <div class="cart-item__price text-sm font-bold">
-                                            43.30 <small class="cart-item__currency text-slate-400">SAR</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                @empty
+                                    <div class="text-sm text-slate-500">No items in your cart.</div>
+                                @endforelse
 
                         </div>
                     </div>
@@ -732,7 +738,8 @@
                 <div class="border-t border-[color:var(--line)] p-5 space-y-4">
                     <div class="flex items-center justify-between text-lg">
                         <span class="font-semibold text-slate-700">Subtotal</span>
-                        <span class="font-bold text-2xl text-blue-600">113.45 <span
+                        <span class="font-bold text-2xl text-blue-600">
+                            {{ number_format($totals['subtotal'] ?? 0, 2) }} <span
                                 class="text-slate-400">SAR</span></span>
                     </div>
                     <x-button type="button" size="lg" variant="solid" class="w-full rounded-md">Continue

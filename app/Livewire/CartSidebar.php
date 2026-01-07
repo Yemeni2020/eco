@@ -2,6 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Domain\Cart\Actions\GetCartAction;
+use App\Domain\Cart\Actions\RemoveCartItemAction;
+use App\Domain\Cart\Actions\UpdateCartItemQtyAction;
+use App\Models\CartItem;
+use Illuminate\Validation\ValidationException;
 use Livewire\Component;
 
 class CartSidebar extends Component
@@ -12,23 +17,7 @@ class CartSidebar extends Component
 
     public function mount()
     {
-        // Example items (normally you load from DB or session)
-        $this->cart = [
-            [
-                'id' => 1,
-                'name' => 'Smart Trunk Organizer',
-                'price' => 34.99,
-                'quantity' => 1,
-                'image' => 'https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=800&q=80',
-            ],
-            [
-                'id' => 2,
-                'name' => 'Car Dash Cam',
-                'price' => 79.99,
-                'quantity' => 2,
-                'image' => 'https://images.unsplash.com/photo-1606813909122-4edb1d4d9b16?w=800&q=80',
-            ],
-        ];
+        $this->refreshCart();
     }
 
     public function open()
@@ -43,23 +32,62 @@ class CartSidebar extends Component
 
     public function increment($index)
     {
-        $this->cart[$index]['quantity']++;
-        // Keep the sidebar open after Livewire re-render
-        $this->isOpen = true;
+        $item = $this->cart[$index] ?? null;
+        if (!$item) {
+            return;
+        }
+
+        $cartItem = CartItem::query()->find($item['id']);
+        if (!$cartItem) {
+            return;
+        }
+
+        try {
+            app(UpdateCartItemQtyAction::class)->execute($cartItem, $cartItem->qty + 1);
+        } catch (ValidationException $e) {
+            $message = $e->errors()['qty'][0] ?? 'Unable to update cart item.';
+            $this->dispatch('notify', message: $message);
+            return;
+        }
+        $this->refreshCart();
     }
 
     public function decrement($index)
     {
-        if ($this->cart[$index]['quantity'] > 1) {
-            $this->cart[$index]['quantity']--;
+        $item = $this->cart[$index] ?? null;
+        if (!$item) {
+            return;
         }
-        $this->isOpen = true;
+
+        $cartItem = CartItem::query()->find($item['id']);
+        if (!$cartItem || $cartItem->qty <= 1) {
+            return;
+        }
+
+        try {
+            app(UpdateCartItemQtyAction::class)->execute($cartItem, $cartItem->qty - 1);
+        } catch (ValidationException $e) {
+            $message = $e->errors()['qty'][0] ?? 'Unable to update cart item.';
+            $this->dispatch('notify', message: $message);
+            return;
+        }
+        $this->refreshCart();
     }
 
     public function removeItem($index)
     {
-        array_splice($this->cart, $index, 1);
-        $this->isOpen = true;
+        $item = $this->cart[$index] ?? null;
+        if (!$item) {
+            return;
+        }
+
+        $cartItem = CartItem::query()->find($item['id']);
+        if (!$cartItem) {
+            return;
+        }
+
+        app(RemoveCartItemAction::class)->execute($cartItem);
+        $this->refreshCart();
     }
 
     public function getSubtotalProperty()
@@ -72,5 +100,21 @@ class CartSidebar extends Component
     public function render()
     {
         return view('livewire.cart-sidebar');
+    }
+
+    private function refreshCart(): void
+    {
+        $cart = app(GetCartAction::class)->execute(auth()->user(), session()->getId());
+
+        $this->cart = $cart->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->product?->name ?? '-',
+                'price' => (float) $item->price_snapshot,
+                'quantity' => $item->qty,
+                'image' => $item->product?->image ?? ($item->product?->gallery[0] ?? null),
+            ];
+        })->values()->all();
+
     }
 }

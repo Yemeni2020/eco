@@ -14,42 +14,7 @@
             </div>
 
             <div class="space-y-8">
-                @foreach ([
-        [
-            'id' => 'WU88191111',
-            'date' => '2021-07-06',
-            'total' => '$160.00',
-            'delivery' => '2021-07-12',
-            'items' => [
-                [
-                    'name' => 'Micro Backpack',
-                    'price' => '$70.00',
-                    'image' => 'https://tailwindcss.com/plus-assets/img/ecommerce-images/order-history-page-03-product-01.jpg',
-                    'description' => 'Compact carry option with dual carry modes.',
-                ],
-                [
-                    'name' => 'Nomad Shopping Tote',
-                    'price' => '$90.00',
-                    'image' => 'https://tailwindcss.com/plus-assets/img/ecommerce-images/order-history-page-03-product-02.jpg',
-                    'description' => 'Durable yellow canvas tote with multiple carry options.',
-                ],
-            ],
-        ],
-        [
-            'id' => 'AT48441546',
-            'date' => '2020-12-22',
-            'total' => '$40.00',
-            'delivery' => '2021-01-05',
-            'items' => [
-                [
-                    'name' => 'Double Stack Clothing Bag',
-                    'price' => '$40.00',
-                    'image' => 'https://tailwindcss.com/plus-assets/img/ecommerce-images/order-history-page-03-product-03.jpg',
-                    'description' => 'Double-layer garment bag to keep clothes folded and protected.',
-                ],
-            ],
-        ],
-    ] as $order)
+                @forelse ($orders as $order)
                     <article class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                         <div
                             class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between px-6 py-5 border-b border-slate-100">
@@ -134,7 +99,9 @@
                             </ul>
                         </div>
                     </article>
-                @endforeach
+                @empty
+                    <p class="text-sm text-slate-500">No recent orders yet.</p>
+                @endforelse
             </div>
         </section>
     </main>

@@ -1,3 +1,4 @@
+<x-layouts.app>
 <div>
     
 
@@ -96,220 +97,28 @@
                     <div class="flex gap-4 overflow-x-auto overflow-y-hidden pb-2 pr-2 scroll-smooth snap-x snap-mandatory touch-pan-x overscroll-x-contain
                [-webkit-overflow-scrolling:touch] [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
                         data-cat-track>
-                        <!-- Item -->
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
+                        @forelse ($categories as $category)
+                            <a href="{{ route('shop', ['category' => $category['slug'] ?? null]) }}"
+                                class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
                  transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <!-- gradient ring -->
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/04/cat-1.jpg"
-                                        alt="Smartphone"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
+                                <div
+                                    class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
+                                    <div class="h-full w-full overflow-hidden rounded-full bg-white">
+                                        <img src="{{ $category['image'] ?? '' }}"
+                                            alt="{{ $category['name'] ?? '' }}"
+                                            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                                            loading="lazy" />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Smartphone</p>
-                                <p class="mt-0.5 text-xs text-gray-500">New arrivals</p>
-                            </div>
-
-                            <!-- tiny corner badge (optional) -->
-                            <span
-                                class="absolute right-3 top-3 rounded-full bg-gray-900/90 px-2 py-1 text-[10px] font-semibold text-white">
-                                Hot
-                            </span>
-                        </a>
-
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/04/cat-2.jpg"
-                                        alt="Home & Decor"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
+                                <div class="mt-3 text-center">
+                                    <p class="text-sm font-semibold text-gray-900">{{ $category['name'] ?? '' }}</p>
+                                    <p class="mt-0.5 text-xs text-gray-500">{{ $category['tagline'] ?? '' }}</p>
                                 </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Home &amp; Decor</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Trending</p>
-                            </div>
-                        </a>
-
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/09/cosmetic-cat-7.jpg"
-                                        alt="Makeup"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Makeup</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Best sellers</p>
-                            </div>
-                        </a>
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/04/cat-2.jpg"
-                                        alt="Home & Decor"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Home &amp; Decor</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Trending</p>
-                            </div>
-                        </a>
-
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/09/cosmetic-cat-7.jpg"
-                                        alt="Makeup"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Makeup</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Best sellers</p>
-                            </div>
-                        </a>
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/04/cat-2.jpg"
-                                        alt="Home & Decor"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Home &amp; Decor</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Trending</p>
-                            </div>
-                        </a>
-
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/09/cosmetic-cat-7.jpg"
-                                        alt="Makeup"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Makeup</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Best sellers</p>
-                            </div>
-                        </a>
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/04/cat-2.jpg"
-                                        alt="Home & Decor"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Home &amp; Decor</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Trending</p>
-                            </div>
-                        </a>
-
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/09/cosmetic-cat-7.jpg"
-                                        alt="Makeup"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Makeup</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Best sellers</p>
-                            </div>
-                        </a>
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/04/cat-2.jpg"
-                                        alt="Home & Decor"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Home &amp; Decor</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Trending</p>
-                            </div>
-                        </a>
-
-                        <a href="#"
-                            class="snap-start group relative w-[150px] shrink-0 rounded-2xl border border-gray-200/70 bg-white/70 p-4 shadow-sm backdrop-blur
-                 transition hover:-translate-y-0.5 hover:shadow-lg">
-                            <div
-                                class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gradient-to-br from-indigo-200 via-pink-200 to-amber-200 p-[2px]">
-                                <div class="h-full w-full overflow-hidden rounded-full bg-white">
-                                    <img src="https://import.theme-sky.com/merto/wp-content/uploads/2024/09/cosmetic-cat-7.jpg"
-                                        alt="Makeup"
-                                        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        loading="lazy" />
-                                </div>
-                            </div>
-
-                            <div class="mt-3 text-center">
-                                <p class="text-sm font-semibold text-gray-900">Makeup</p>
-                                <p class="mt-0.5 text-xs text-gray-500">Best sellers</p>
-                            </div>
-                        </a>
-
-                        <!-- Add more items... -->
+                            </a>
+                        @empty
+                            <div class="text-sm text-gray-500">No categories available.</div>
+                        @endforelse
                     </div>
                 </div>
             </div>
@@ -385,162 +194,54 @@
             </div>
 
             <ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                <li>
-                    <article class="slide snap-start shrink-0 w-[220px] sm:w-[240px] md:w-[260px]">
-                        <div
-                            class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                            <a href="/shop/1" class="absolute inset-0 z-10" aria-label="View Machined Pen"></a>
-                            <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    src="https://tailwindcss.com/plus-assets/img/ecommerce-images/home-page-02-product-01.jpg"
-                                    alt="Black machined steel pen with hexagonal grip and small white logo at top."
-                                    draggable="false" />
-                                <button data-add-to-cart
-                                    class="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white"
-                                    type="button" aria-label="Add to cart">
-                                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
-                                        <path
-                                            d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-4">
-                                <div class="text-xs text-zinc-500">Black</div>
-                                <h3 class="mt-1 text-sm font-bold text-zinc-900 line-clamp-2">Machined Pen</h3>
-                                <div class="mt-3 flex items-center justify-between">
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-base font-extrabold text-zinc-900"><x-currency
-                                                amount="35" /></span>
-                                    </div>
+                @forelse ($featuredProducts as $product)
+                    <li>
+                        <article class="slide snap-start shrink-0 w-[220px] sm:w-[240px] md:w-[260px]">
+                            <div
+                                class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+                                <a href="/shop/{{ $product['id'] ?? '' }}" class="absolute inset-0 z-10"
+                                    aria-label="View {{ $product['title'] ?? '' }}"></a>
+                                <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
+                                    <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                        src="{{ $product['image'] ?? '' }}" alt="{{ $product['title'] ?? '' }}"
+                                        draggable="false" />
                                     <button data-add-to-cart
-                                        class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
-                                        type="button">
-                                        Add
+                                        class="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white"
+                                        type="button" aria-label="Add to cart">
+                                        <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
+                                            <path
+                                                d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
+                                        </svg>
                                     </button>
                                 </div>
-                            </div>
-                        </div>
-                    </article>
-                </li>
-                <li>
-                    <article class="slide snap-start shrink-0 w-[220px] sm:w-[240px] md:w-[260px]">
-                        <div
-                            class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                            <a href="/shop/2" class="absolute inset-0 z-10" aria-label="View Earthen Mug"></a>
-                            <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    src="https://tailwindcss.com/plus-assets/img/ecommerce-images/home-page-02-product-02.jpg"
-                                    alt="Black porcelain mug with modern square handle and natural clay accents on rim and bottom."
-                                    draggable="false" />
-                                <button data-add-to-cart
-                                    class="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white"
-                                    type="button" aria-label="Add to cart">
-                                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
-                                        <path
-                                            d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-4">
-                                <div class="text-xs text-zinc-500">Matte Black</div>
-                                <h3 class="mt-1 text-sm font-bold text-zinc-900 line-clamp-2">Earthen Mug</h3>
-                                <div class="mt-3 flex items-center justify-between">
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-base font-extrabold text-zinc-900"><x-currency
-                                                amount="28" /></span>
+                                <div class="p-4">
+                                    <div class="text-xs text-zinc-500">{{ $product['brand'] ?? '' }}</div>
+                                    <h3 class="mt-1 text-sm font-bold text-zinc-900 line-clamp-2">
+                                        {{ $product['title'] ?? '' }}</h3>
+                                    <div class="mt-3 flex items-center justify-between">
+                                        <div class="flex items-baseline gap-2">
+                                            <span class="text-base font-extrabold text-zinc-900"><x-currency
+                                                    :amount="number_format($product['price'] ?? 0, 2)" /></span>
+                                        </div>
+                                        <button data-add-to-cart
+                                            class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
+                                            type="button">
+                                            Add
+                                        </button>
                                     </div>
-                                    <button data-add-to-cart
-                                        class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
-                                        type="button">
-                                        Add
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    </article>
-                </li>
-                <li>
-                    <article class="slide snap-start shrink-0 w-[220px] sm:w-[240px] md:w-[260px]">
-                        <div
-                            class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                            <a href="/shop/3" class="absolute inset-0 z-10"
-                                aria-label="View Leatherbound Daily Journal Set"></a>
-                            <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    src="https://tailwindcss.com/plus-assets/img/ecommerce-images/home-page-02-product-03.jpg"
-                                    alt="Natural leather journal with brass disc binding and three paper refill sets."
-                                    draggable="false" />
-                                <button data-add-to-cart
-                                    class="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white"
-                                    type="button" aria-label="Add to cart">
-                                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
-                                        <path
-                                            d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-4">
-                                <div class="text-xs text-zinc-500">Natural</div>
-                                <h3 class="mt-1 text-sm font-bold text-zinc-900 line-clamp-2">Leatherbound Daily
-                                    Journal Set</h3>
-                                <div class="mt-3 flex items-center justify-between">
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-base font-extrabold text-zinc-900"><x-currency
-                                                amount="50" /></span>
-                                    </div>
-                                    <button data-add-to-cart
-                                        class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
-                                        type="button">
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </li>
-                <li>
-                    <article class="slide snap-start shrink-0 w-[220px] sm:w-[240px] md:w-[260px]">
-                        <div
-                            class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                            <a href="/shop/4" class="absolute inset-0 z-10"
-                                aria-label="View Leatherbound Journal"></a>
-                            <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
-                                <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    src="https://tailwindcss.com/plus-assets/img/ecommerce-images/home-page-02-product-04.jpg"
-                                    alt="Black leather journal with brass disc binding." draggable="false" />
-                                <button data-add-to-cart
-                                    class="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white"
-                                    type="button" aria-label="Add to cart">
-                                    <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
-                                        <path
-                                            d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
-                                    </svg>
-                                </button>
-                            </div>
-                            <div class="p-4">
-                                <div class="text-xs text-zinc-500">Black</div>
-                                <h3 class="mt-1 text-sm font-bold text-zinc-900 line-clamp-2">Leatherbound Daily
-                                    Journal</h3>
-                                <div class="mt-3 flex items-center justify-between">
-                                    <div class="flex items-baseline gap-2">
-                                        <span class="text-base font-extrabold text-zinc-900"><x-currency
-                                                amount="50" /></span>
-                                    </div>
-                                    <button data-add-to-cart
-                                        class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
-                                        type="button">
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </li>
+                        </article>
+                    </li>
+                @empty
+                    <li class="text-sm text-slate-500">No products available.</li>
+                @endforelse
             </ul>
     </div>
 
     </section>
 
+    @php($previewProduct = $featuredProducts[0] ?? null)
     <dialog id="home-product-preview"
         class="preview-dialog fixed inset-0 z-50 m-0 h-full w-full overflow-y-auto bg-transparent p-4 backdrop:bg-black/60 backdrop:backdrop-blur-sm">
         <div class="flex min-h-full items-center justify-center">
@@ -556,23 +257,25 @@
                 </button>
 
                 <div class="grid gap-8 p-6 md:p-8 lg:grid-cols-[1fr,1.1fr]">
-                    <div class="space-y-4">
-                        <div class="overflow-hidden rounded-2xl bg-slate-100">
-                            <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"
-                                alt="Backseat Tablet Organizer" class="h-full w-full object-cover">
+                        <div class="space-y-4">
+                            <div class="overflow-hidden rounded-2xl bg-slate-100">
+                            <img src="{{ $previewProduct['image'] ?? '' }}"
+                                alt="{{ $previewProduct['title'] ?? '' }}" class="h-full w-full object-cover">
                         </div>
                         <div class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            <span class="rounded-full bg-amber-100 px-3 py-1 text-amber-700">Best Seller</span>
-                            <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Category: Storage</span>
-                            <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Color: Black</span>
-                            <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Size: Standard</span>
+                            <span class="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{{ $previewProduct['badge'] ?? '' }}</span>
+                            <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Category: {{ $previewProduct['brand'] ?? '' }}</span>
+                            <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Color: </span>
+                            <span class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Size: </span>
                         </div>
                     </div>
 
                     <div class="space-y-6">
                         <div class="space-y-2">
-                            <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">Backseat Tablet Organizer</h2>
-                            <p class="text-xl font-semibold text-blue-600">$29.99</p>
+                            <h2 class="text-2xl font-bold text-slate-900 md:text-3xl">{{ $previewProduct['title'] ?? '' }}</h2>
+                            <p class="text-xl font-semibold text-blue-600">
+                                <x-currency :amount="number_format($previewProduct['price'] ?? 0, 2)" />
+                            </p>
                         </div>
 
                         <div class="flex items-center gap-3">
@@ -609,13 +312,12 @@
                                 reviews</a>
                         </div>
 
-                        <p class="text-slate-600">Perfect for road trips with kids. Holds tablets up to 11 inches,
-                            drinks, snacks, and toys. Durable waterproof fabric.</p>
+                        <p class="text-slate-600">{{ $previewProduct['description'] ?? '' }}</p>
 
                         <div class="flex flex-wrap gap-3">
                             <x-button type="button" size="lg" variant="solid" class="rounded-full px-6">Add to
                                 bag</x-button>
-                            <a href="/shop/8"
+                            <a href="/shop/{{ $previewProduct['id'] ?? '' }}"
                                 class="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 px-6 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">View
                                 full details</a>
                         </div>
@@ -625,77 +327,12 @@
         </div>
     </dialog>
 </div>
+</x-layouts.app>
 
 @push('scripts')
     <script>
         (() => {
-            const products = [{
-                    id: "p1",
-                    title: "Noise-Cancel Headphones",
-                    brand: "SoundPro",
-                    price: 129,
-                    compareAt: 169,
-                    rating: 4.8,
-                    reviews: 2193,
-                    badge: "Hot Deal",
-                    image: "https://images.unsplash.com/photo-1518441902117-f0a0b1ff3fdb?auto=format&fit=crop&w=1200&q=80",
-                },
-                {
-                    id: "p2",
-                    title: "Everyday Sneakers",
-                    brand: "Stride",
-                    price: 79,
-                    compareAt: 99,
-                    rating: 4.5,
-                    reviews: 983,
-                    badge: "Limited",
-                    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1200&q=80",
-                },
-                {
-                    id: "p3",
-                    title: "Matte Phone Case",
-                    brand: "CaseLab",
-                    price: 18,
-                    compareAt: 25,
-                    rating: 4.4,
-                    reviews: 512,
-                    badge: "Popular",
-                    image: "https://images.unsplash.com/photo-1556656793-08538906a9f8?auto=format&fit=crop&w=1200&q=80",
-                },
-                {
-                    id: "p4",
-                    title: "Minimal Wallet",
-                    brand: "Hide",
-                    price: 39,
-                    compareAt: 59,
-                    rating: 4.7,
-                    reviews: 842,
-                    badge: "Best Seller",
-                    image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&q=80",
-                },
-                {
-                    id: "p5",
-                    title: "Ceramic Travel Mug",
-                    brand: "Daily",
-                    price: 24,
-                    compareAt: null,
-                    rating: 4.6,
-                    reviews: 411,
-                    badge: "New",
-                    image: "https://images.unsplash.com/photo-1526401485004-2aa7b5d8b6f9?auto=format&fit=crop&w=1200&q=80",
-                },
-                {
-                    id: "p6",
-                    title: "Desk Lamp",
-                    brand: "Glow",
-                    price: 46,
-                    compareAt: 65,
-                    rating: 4.3,
-                    reviews: 301,
-                    badge: "Sale",
-                    image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80",
-                },
-            ];
+            const products = @json($featuredProducts);
 
             const INFINITE_FEEL = true;
             const AUTOPLAY = false;
@@ -712,9 +349,10 @@
 
             if (!viewport || !dotsEl || !live) return;
 
+            const currency = @json($currency ?? 'SAR');
             const money = (n) => new Intl.NumberFormat(undefined, {
                 style: "currency",
-                currency: "USD"
+                currency
             }).format(n);
             const intf = (n) => new Intl.NumberFormat(undefined).format(n);
 
@@ -1051,3 +689,6 @@
 @endpush
 
 </div>
+
+
+

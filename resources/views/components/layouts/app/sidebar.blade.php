@@ -15,6 +15,20 @@
                 <flux:navlist.group :heading="__('Platform')" class="grid">
                     <flux:navlist.item icon="home" :href="route('admin')" :current="request()->routeIs('admin')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 </flux:navlist.group>
+                <flux:navlist.group :heading="__('Catalog')" class="grid">
+                    <flux:navlist.item icon="cube" :href="route('admin.products.index')" :current="request()->routeIs('admin.products.*')" wire:navigate>{{ __('Products') }}</flux:navlist.item>
+                    <flux:navlist.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>{{ __('Categories') }}</flux:navlist.item>
+                </flux:navlist.group>
+                <flux:navlist.group :heading="__('Sales')" class="grid">
+                    <flux:navlist.item icon="shopping-cart" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')" wire:navigate>{{ __('Orders') }}</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('admin.customers.index')" :current="request()->routeIs('admin.customers.*')" wire:navigate>{{ __('Customers') }}</flux:navlist.item>
+                </flux:navlist.group>
+                <flux:navlist.group :heading="__('Insights')" class="grid">
+                    <flux:navlist.item icon="chart-bar" :href="route('admin.reports.index')" :current="request()->routeIs('admin.reports.*')" wire:navigate>{{ __('Reports') }}</flux:navlist.item>
+                </flux:navlist.group>
+                <flux:navlist.group :heading="__('System')" class="grid">
+                    <flux:navlist.item icon="cog-8-tooth" :href="route('admin.settings.index')" :current="request()->routeIs('admin.settings.*')" wire:navigate>{{ __('Settings') }}</flux:navlist.item>
+                </flux:navlist.group>
             </flux:navlist>
 
             <flux:spacer />

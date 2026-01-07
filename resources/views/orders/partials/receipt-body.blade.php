@@ -7,7 +7,7 @@
                     <p class="text-sm text-slate-500">Receipt</p>
                     <h1 class="text-3xl font-bold text-slate-900">Receipt #{{ $orderNumber }}</h1>
                     <p class="text-slate-600 mt-2">Paid on
-                        {{ \Carbon\Carbon::parse($placedAt)->toFormattedDateString() }}</p>
+                        {{ $placedAt ? \Carbon\Carbon::parse($placedAt)->toFormattedDateString() : '-' }}</p>
                 </div>
                 <div class="text-right space-y-2">
                     @if ($showActions)

@@ -215,21 +215,11 @@
                         <form class="mt-4 border-t border-gray-200">
                             <h3 class="sr-only">Categories</h3>
                             <ul role="list" class="px-2 py-3 font-medium text-gray-900">
-                                <li>
-                                    <a href="#" class="block px-2 py-3">Totes</a>
-                                </li>
-                                <li>
-                                    <a href="#" class="block px-2 py-3">Backpacks</a>
-                                </li>
-                                <li>
-                                    <a href="#" class="block px-2 py-3">Travel Bags</a>
-                                </li>
-                                <li>
-                                    <a href="#" class="block px-2 py-3">Hip Bags</a>
-                                </li>
-                                <li>
-                                    <a href="#" class="block px-2 py-3">Laptop Sleeves</a>
-                                </li>
+                                @foreach ($categories as $category)
+                                    <li>
+                                        <a href="#" class="block px-2 py-3">{{ $category['label'] }}</a>
+                                    </li>
+                                @endforeach
                             </ul>
 
 
@@ -304,13 +294,13 @@
                                 </h3>
                                 <el-disclosure id="filter-section-mobile-category" hidden class="block pt-6">
                                     <div class="space-y-6">
-                                        @foreach ([['Interior', 'interior'], ['Storage', 'storage'], ['Electronics', 'electronics'], ['Car Care', 'car care'], ['Tools', 'tools']] as [$label, $value])
+                                        @foreach ($categories as $category)
                                             <div class="flex gap-3">
                                                 <div class="flex h-5 shrink-0 items-center">
                                                     <div class="group grid size-4 grid-cols-1">
-                                                        <input id="filter-mobile-category-{{ $value }}"
+                                                        <input id="filter-mobile-category-{{ $category['value'] }}"
                                                             type="checkbox" name="category[]"
-                                                            value="{{ $value }}"
+                                                            value="{{ $category['value'] }}"
                                                             class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
                                                         <svg viewBox="0 0 14 14" fill="none"
                                                             class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
@@ -323,8 +313,8 @@
                                                         </svg>
                                                     </div>
                                                 </div>
-                                                <label for="filter-mobile-category-{{ $value }}"
-                                                    class="min-w-0 flex-1 text-gray-500">{{ $label }}</label>
+                                                <label for="filter-mobile-category-{{ $category['value'] }}"
+                                                    class="min-w-0 flex-1 text-gray-500">{{ $category['label'] }}</label>
                                             </div>
                                         @endforeach
                                     </div>
@@ -752,104 +742,28 @@
                             </h3>
                             <el-disclosure id="filter-section-category" hidden class="block pt-6">
                                 <div class="space-y-4">
-                                    <div class="flex gap-3">
-                                        <div class="flex h-5 shrink-0 items-center">
-                                            <div class="group grid size-4 grid-cols-1">
-                                                <input id="filter-category-0" type="checkbox" name="category[]"
-                                                    value="new-arrivals"
-                                                    class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
-                                                <svg viewBox="0 0 14 14" fill="none"
-                                                    class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
-                                                    <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-checked:opacity-100" />
-                                                    <path d="M3 7H11" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-indeterminate:opacity-100" />
-                                                </svg>
+                                    @foreach ($categories as $category)
+                                        <div class="flex gap-3">
+                                            <div class="flex h-5 shrink-0 items-center">
+                                                <div class="group grid size-4 grid-cols-1">
+                                                    <input id="filter-category-{{ $loop->index }}" type="checkbox"
+                                                        name="category[]" value="{{ $category['value'] }}"
+                                                        class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
+                                                    <svg viewBox="0 0 14 14" fill="none"
+                                                        class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
+                                                        <path d="M3 8L6 11L11 3.5" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round"
+                                                            class="opacity-0 group-has-checked:opacity-100" />
+                                                        <path d="M3 7H11" stroke-width="2" stroke-linecap="round"
+                                                            stroke-linejoin="round"
+                                                            class="opacity-0 group-has-indeterminate:opacity-100" />
+                                                    </svg>
+                                                </div>
                                             </div>
+                                            <label for="filter-category-{{ $loop->index }}"
+                                                class="text-sm text-gray-600">{{ $category['label'] }}</label>
                                         </div>
-                                        <label for="filter-category-0" class="text-sm text-gray-600">New
-                                            Arrivals</label>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <div class="flex h-5 shrink-0 items-center">
-                                            <div class="group grid size-4 grid-cols-1">
-                                                <input id="filter-category-1" type="checkbox" name="category[]"
-                                                    value="sale"
-                                                    class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
-                                                <svg viewBox="0 0 14 14" fill="none"
-                                                    class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
-                                                    <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-checked:opacity-100" />
-                                                    <path d="M3 7H11" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-indeterminate:opacity-100" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <label for="filter-category-1" class="text-sm text-gray-600">Sale</label>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <div class="flex h-5 shrink-0 items-center">
-                                            <div class="group grid size-4 grid-cols-1">
-                                                <input id="filter-category-2" type="checkbox" name="category[]"
-                                                    value="travel"
-                                                    class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
-                                                <svg viewBox="0 0 14 14" fill="none"
-                                                    class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
-                                                    <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-checked:opacity-100" />
-                                                    <path d="M3 7H11" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-indeterminate:opacity-100" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <label for="filter-category-2" class="text-sm text-gray-600">Travel</label>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <div class="flex h-5 shrink-0 items-center">
-                                            <div class="group grid size-4 grid-cols-1">
-                                                <input id="filter-category-3" type="checkbox" name="category[]"
-                                                    value="organization"
-                                                    class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
-                                                <svg viewBox="0 0 14 14" fill="none"
-                                                    class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
-                                                    <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-checked:opacity-100" />
-                                                    <path d="M3 7H11" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-indeterminate:opacity-100" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <label for="filter-category-3"
-                                            class="text-sm text-gray-600">Organization</label>
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <div class="flex h-5 shrink-0 items-center">
-                                            <div class="group grid size-4 grid-cols-1">
-                                                <input id="filter-category-4" type="checkbox" name="category[]"
-                                                    value="accessories"
-                                                    class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto" />
-                                                <svg viewBox="0 0 14 14" fill="none"
-                                                    class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
-                                                    <path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-checked:opacity-100" />
-                                                    <path d="M3 7H11" stroke-width="2" stroke-linecap="round"
-                                                        stroke-linejoin="round"
-                                                        class="opacity-0 group-has-indeterminate:opacity-100" />
-                                                </svg>
-                                            </div>
-                                        </div>
-                                        <label for="filter-category-4"
-                                            class="text-sm text-gray-600">Accessories</label>
-                                    </div>
+                                    @endforeach
                                 </div>
                             </el-disclosure>
                         </div>
@@ -998,141 +912,6 @@
                     <div class="lg:col-span-3">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" data-product-grid
                             data-view="grid">
-                            @php
-                                $products = [
-                                    [
-                                        'id' => 1,
-                                        'name' => 'Premium Leather Seat Covers',
-                                        'description' =>
-                                            'Transform your car interior with our premium leather seat covers. Designed for durability and maximum comfort, these covers are breathable, water-resistant, and easy to clean.',
-                                        'price' => 189.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?w=800&q=80',
-                                        'category' => 'Interior',
-                                        'color' => 'black',
-                                        'size' => 'standard',
-                                        'badge' => 'Best Seller',
-                                    ],
-                                    [
-                                        'id' => 2,
-                                        'name' => 'All-Weather Floor Mats Pro',
-                                        'description' =>
-                                            'Heavy-duty protection for your vehicle floor. Deep channels trap water, mud, and debris. Custom fit for most sedans and SUVs.',
-                                        'price' => 49.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=800&q=80',
-                                        'category' => 'Interior',
-                                        'color' => 'black',
-                                        'size' => 'standard',
-                                        'badge' => 'Best Seller',
-                                    ],
-                                    [
-                                        'id' => 3,
-                                        'name' => 'Smart Trunk Organizer',
-                                        'description' =>
-                                            'Keep your trunk clutter-free. Collapsible design with multiple compartments, sturdy handles, and non-slip bottom strips.',
-                                        'price' => 34.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=800&q=80',
-                                        'category' => 'Storage',
-                                        'color' => 'gray',
-                                        'size' => 'standard',
-                                        'badge' => null,
-                                    ],
-                                    [
-                                        'id' => 4,
-                                        'name' => 'MagSafe Dashboard Mount',
-                                        'description' =>
-                                            'Secure magnetic phone mount with 360-degree rotation. Industrial-strength suction cup adheres to dashboard or windshield.',
-                                        'price' => 29.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&q=80',
-                                        'category' => 'Electronics',
-                                        'color' => 'black',
-                                        'size' => 'small',
-                                        'badge' => 'Best Seller',
-                                    ],
-                                    [
-                                        'id' => 5,
-                                        'name' => 'RGB Ambient Lighting Kit',
-                                        'description' =>
-                                            'App-controlled LED interior lights with music sync mode. Choose from 16 million colors to match your mood.',
-                                        'price' => 39.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=800&q=80',
-                                        'category' => 'Electronics',
-                                        'color' => 'multicolor',
-                                        'size' => 'standard',
-                                        'badge' => null,
-                                    ],
-                                    [
-                                        'id' => 6,
-                                        'name' => 'Ergonomic Steering Wheel Cover',
-                                        'description' =>
-                                            'Enhanced grip and comfort. Protects your steering wheel from wear and tear while keeping your hands warm in winter and cool in summer.',
-                                        'price' => 19.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=800&q=80',
-                                        'category' => 'Interior',
-                                        'color' => 'black',
-                                        'size' => 'standard',
-                                        'badge' => null,
-                                    ],
-                                    [
-                                        'id' => 7,
-                                        'name' => 'HEPA Car Air Purifier',
-                                        'description' =>
-                                            'Eliminate odors, smoke, and allergens. Portable design fits in cup holder. USB powered with quiet operation.',
-                                        'price' => 59.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1556656793-08538906a9f8?w=800&q=80',
-                                        'category' => 'Electronics',
-                                        'color' => 'white',
-                                        'size' => 'small',
-                                        'badge' => null,
-                                    ],
-                                    [
-                                        'id' => 8,
-                                        'name' => 'Backseat Tablet Organizer',
-                                        'description' =>
-                                            'Perfect for road trips with kids. Holds tablets up to 11 inches, drinks, snacks, and toys. Durable waterproof fabric.',
-                                        'price' => 29.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80',
-                                        'category' => 'Storage',
-                                        'color' => 'black',
-                                        'size' => 'standard',
-                                        'badge' => 'Best Seller',
-                                    ],
-                                    [
-                                        'id' => 9,
-                                        'name' => 'Ceramic Coating Spray',
-                                        'description' =>
-                                            'Professional grade ceramic coating for high gloss shine and hydrophobic protection.',
-                                        'price' => 24.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=800&q=80',
-                                        'category' => 'Car Care',
-                                        'color' => 'clear',
-                                        'size' => 'small',
-                                        'badge' => 'Best Seller',
-                                    ],
-                                    [
-                                        'id' => 10,
-                                        'name' => 'Digital Tire Pressure Gauge',
-                                        'description' =>
-                                            'Accurate readings with backlit LCD display. Essential safety tool for every vehicle.',
-                                        'price' => 15.99,
-                                        'image' =>
-                                            'https://images.unsplash.com/photo-1595167440058-20412e87c53d?w=800&q=80',
-                                        'category' => 'Tools',
-                                        'color' => 'black',
-                                        'size' => 'small',
-                                        'badge' => null,
-                                    ],
-                                ];
-                            @endphp
-
                             @foreach ($products as $product)
                                 <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl h-full flex flex-col relative group"
                                     data-product-card data-loaded="true" data-id="{{ $product['id'] }}"
@@ -1230,6 +1009,7 @@
                 </div>
             </section>
 
+            @php($previewProduct = $products[0] ?? null)
             <dialog id="product-preview"
                 class="preview-dialog fixed inset-0 z-50 m-0 h-full w-full overflow-y-auto bg-transparent p-4 backdrop:bg-black/60 backdrop:backdrop-blur-sm">
                 <div class="flex min-h-full items-center justify-center">
@@ -1249,29 +1029,31 @@
                             <div class="space-y-4">
                                 <div class="overflow-hidden rounded-2xl bg-slate-100">
                                     <img data-preview-image
-                                        src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=800&q=80"
-                                        alt="Backseat Tablet Organizer" class="h-full w-full object-cover">
+                                        src="{{ $previewProduct['image'] ?? '' }}"
+                                        alt="{{ $previewProduct['name'] ?? '' }}" class="h-full w-full object-cover">
                                 </div>
                                 <div
                                     class="flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
                                     <span data-preview-badge
-                                        class="rounded-full bg-amber-100 px-3 py-1 text-amber-700">Best Seller</span>
+                                        class="rounded-full bg-amber-100 px-3 py-1 text-amber-700">{{ $previewProduct['badge'] ?? '' }}</span>
                                     <span data-preview-category
                                         class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Category:
-                                        Storage</span>
+                                        {{ $previewProduct['category'] ?? '' }}</span>
                                     <span data-preview-color
-                                        class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Color: Black</span>
+                                        class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Color: {{ $previewProduct['color'] ?? '' }}</span>
                                     <span data-preview-size
                                         class="rounded-full bg-slate-100 px-3 py-1 text-slate-600">Size:
-                                        Standard</span>
+                                        {{ $previewProduct['size'] ?? '' }}</span>
                                 </div>
                             </div>
 
                             <div class="space-y-6">
                                 <div class="space-y-2">
                                     <h2 data-preview-title class="text-2xl font-bold text-slate-900 md:text-3xl">
-                                        Backseat Tablet Organizer</h2>
-                                    <p data-preview-price class="text-xl font-semibold text-blue-600">$29.99</p>
+                                        {{ $previewProduct['name'] ?? '' }}</h2>
+                                    <p data-preview-price class="text-xl font-semibold text-blue-600">
+                                        <x-currency :amount="number_format($previewProduct['price'] ?? 0, 2)" />
+                                    </p>
                                 </div>
 
                                 <div class="flex items-center gap-3">
@@ -1313,14 +1095,12 @@
                                         reviews</a>
                                 </div>
 
-                                <p data-preview-description class="text-slate-600">Perfect for road trips with kids.
-                                    Holds tablets up to 11 inches, drinks, snacks, and toys. Durable waterproof fabric.
-                                </p>
+                                <p data-preview-description class="text-slate-600">{{ $previewProduct['description'] ?? '' }}</p>
 
                                 <div class="flex flex-wrap gap-3">
                                     <x-button type="button" size="lg" variant="solid"
                                         class="rounded-full px-6">Add to bag</x-button>
-                                    <a data-preview-link href="/shop/8"
+                                    <a data-preview-link href="/shop/{{ $previewProduct['id'] ?? '' }}"
                                         class="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 px-6 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">View
                                         full details</a>
                                 </div>

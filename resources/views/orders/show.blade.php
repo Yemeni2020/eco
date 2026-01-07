@@ -1,20 +1,20 @@
 <x-layouts.app>
     @php
         $orderData = $order ?? [];
-        $orderNumber = $orderData['id'] ?? ($orderId ?? '54879');
+        $orderNumber = $orderData['id'] ?? ($orderId ?? '');
         $items = $orderData['items'] ?? [];
-        $placedAt = $orderData['placed_at'] ?? '2021-03-22';
+        $placedAt = $orderData['placed_at'] ?? null;
         $shippingAddress = $orderData['shipping_address'] ?? [];
         $billingAddress = $orderData['billing_address'] ?? $shippingAddress;
-        $contact = $orderData['contact'] ?? ['email' => 'f***@example.com', 'phone' => '1********40'];
+        $contact = $orderData['contact'] ?? ['email' => '', 'phone' => ''];
         $payment = $orderData['payment'] ?? [
-            'brand' => 'Visa',
-            'last4' => '4242',
-            'exp_month' => '02',
-            'exp_year' => '24',
+            'brand' => '',
+            'last4' => '',
+            'exp_month' => '',
+            'exp_year' => '',
         ];
-        $shipping = $orderData['shipping'] ?? 5;
-        $tax = $orderData['tax'] ?? 6.16;
+        $shipping = $orderData['shipping'] ?? 0;
+        $tax = $orderData['tax'] ?? 0;
         $subtotal = array_reduce($items, fn($carry, $item) => $carry + ($item['price'] ?? 0) * ($item['qty'] ?? 1), 0);
         $total = $orderData['total'] ?? $subtotal + $shipping + $tax;
         $invoiceUrl = route('orders.invoice', $orderNumber);
@@ -27,7 +27,7 @@
                     <p class="text-sm uppercase tracking-[0.2em] text-slate-400">Order Details</p>
                     <h1 class="text-4xl font-bold">Order #{{ $orderNumber }}</h1>
                     <p class="text-slate-300 mt-2">Placed on <time
-                            datetime="{{ $placedAt }}">{{ \Carbon\Carbon::parse($placedAt)->toFormattedDateString() }}</time>
+                            datetime="{{ $placedAt }}">{{ $placedAt ? \Carbon\Carbon::parse($placedAt)->toFormattedDateString() : '-' }}</time>
                     </p>
                 </div>
                 <div class="flex gap-3">
