@@ -36,44 +36,79 @@ new class extends Component {
     }
 }; ?>
 
-<section class="w-full">
-    @include('partials.settings-heading')
+<div class="space-y-0">
+    <section class="bg-slate-900 text-white py-16">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold mb-2">{{ __('Settings') }}</h1>
+            <p class="text-slate-300">{{ __('Manage your account, security, and preferences.') }}</p>
+        </div>
+    </section>
 
-    <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
-        <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
-            <flux:input
-                wire:model="current_password"
-                :label="__('Current password')"
-                type="password"
-                required
-                autocomplete="current-password"
-            />
-            <flux:input
-                wire:model="password"
-                :label="__('New password')"
-                type="password"
-                required
-                autocomplete="new-password"
-            />
-            <flux:input
-                wire:model="password_confirmation"
-                :label="__('Confirm Password')"
-                type="password"
-                required
-                autocomplete="new-password"
-            />
+    <section class="container mx-auto px-4 py-12">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                @include('partials.settings-heading')
 
-            <div class="flex items-center gap-4">
-                <div class="flex items-center justify-end">
-                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-password-button">
-                        {{ __('Save') }}
-                    </flux:button>
-                </div>
+                <x-card class="p-6">
+                    <x-settings.layout :heading="__('Update password')" :subheading="__('Ensure your account is using a long, random password to stay secure')">
+                        <form method="POST" wire:submit="updatePassword" class="mt-6 space-y-6">
+                            <flux:input
+                                wire:model="current_password"
+                                :label="__('Current password')"
+                                type="password"
+                                required
+                                autocomplete="current-password"
+                            />
+                            <flux:input
+                                wire:model="password"
+                                :label="__('New password')"
+                                type="password"
+                                required
+                                autocomplete="new-password"
+                            />
+                            <flux:input
+                                wire:model="password_confirmation"
+                                :label="__('Confirm Password')"
+                                type="password"
+                                required
+                                autocomplete="new-password"
+                            />
 
-                <x-action-message class="me-3" on="password-updated">
-                    {{ __('Saved.') }}
-                </x-action-message>
+                            <div class="flex items-center gap-4">
+                                <div class="flex items-center justify-end">
+                                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-password-button">
+                                        {{ __('Save') }}
+                                    </flux:button>
+                                </div>
+
+                                <x-action-message class="me-3" on="password-updated">
+                                    {{ __('Saved.') }}
+                                </x-action-message>
+                            </div>
+                        </form>
+                    </x-settings.layout>
+                </x-card>
             </div>
-        </form>
-    </x-settings.layout>
-</section>
+
+            <aside>
+                <x-card class="p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ __('Quick Links') }}</h3>
+                    <div class="space-y-3 text-sm">
+                        <a class="flex items-center justify-between text-slate-700 hover:text-blue-600"
+                            href="/orders">
+                            {{ __('Orders') }} <span aria-hidden="true">→</span>
+                        </a>
+                        <a class="flex items-center justify-between text-slate-700 hover:text-blue-600"
+                            href="/wishlist">
+                            {{ __('Wishlist') }} <span aria-hidden="true">→</span>
+                        </a>
+                        <a class="flex items-center justify-between text-slate-700 hover:text-blue-600"
+                            href="/profile">
+                            {{ __('Profile Settings') }} <span aria-hidden="true">→</span>
+                        </a>
+                    </div>
+                </x-card>
+            </aside>
+        </div>
+    </section>
+</div>

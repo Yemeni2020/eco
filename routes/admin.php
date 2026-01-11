@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Admin\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,19 @@ Route::middleware('web')->group(function () {
             ->name('admin.products.edit');
         Route::put('admin/products/{product}', [ProductController::class, 'update'])
             ->name('admin.products.update');
+
+        Route::get('admin/colors', [ColorController::class, 'index'])
+            ->name('admin.colors.index');
+        Route::get('admin/colors/create', [ColorController::class, 'create'])
+            ->name('admin.colors.create');
+        Route::post('admin/colors', [ColorController::class, 'store'])
+            ->name('admin.colors.store');
+        Route::get('admin/colors/{color}/edit', [ColorController::class, 'edit'])
+            ->name('admin.colors.edit');
+        Route::put('admin/colors/{color}', [ColorController::class, 'update'])
+            ->name('admin.colors.update');
+        Route::delete('admin/colors/{color}', [ColorController::class, 'destroy'])
+            ->name('admin.colors.destroy');
 
         Route::view('admin/categories', 'admin.categories.index')
             ->name('admin.categories.index');

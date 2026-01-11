@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\ColorSeeder;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -32,5 +33,7 @@ class DatabaseSeeder extends Seeder
         if (Product::count() < 40) {
             Product::factory()->count(40)->create();
         }
+
+        $this->call(ColorSeeder::class);
     }
 }

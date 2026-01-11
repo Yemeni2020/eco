@@ -39,12 +39,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders/{order}/invoice', [OrderController::class, 'invoice'])->name('orders.invoice');
     Route::get('/orders/{order}/receipt', [OrderController::class, 'receipt'])->name('orders.receipt');
 
-    Route::redirect('settings', 'settings/profile');
-    Volt::route('settings/profile', 'settings.profile')->name('profile.edit');
-    Volt::route('settings/password', 'settings.password')->name('user-password.edit');
-    Volt::route('settings/appearance', 'settings.appearance')->name('appearance.edit');
+    Route::redirect('settings', 'admin/setting/profile');
+    Volt::route('admin/setting/profile', 'settings.profile')->name('admin.setting.profile');
+    Volt::route('admin/settings/password', 'settings.password')->name('admin.setting.password');
+    Volt::route('admin/settings/appearance', 'settings.appearance')->name('admin.setting.appearance');
 
-    Volt::route('settings/two-factor', 'settings.two-factor')
+    Volt::route('admin/settings/two-factor', 'settings.two-factor')
         ->middleware(
             when(
                 Features::canManageTwoFactorAuthentication()
@@ -53,7 +53,7 @@ Route::middleware(['auth'])->group(function () {
                 [],
             ),
         )
-        ->name('two-factor.show');
+        ->name('admin.setting.twofactor');
 });
 
 Route::get('/orders/success/{order?}', [OrderController::class, 'success'])->name('orders.success');
@@ -69,7 +69,7 @@ Route::view('/login', 'pages.login')->name('login');
 Route::view('/signup', 'pages.signup')->name('signup');
 Route::view('/reset-password', 'pages.reset-password')->name('password.reset');
 Route::view('/otp', 'pages.otp')->name('otp');
-Route::view('/settings', 'pages.settings')->name('settings');
+Route::view('/settings', 'pages.settings')->name('settings.dashboard');
 
 if (!function_exists('downloadCsv')) {
     function downloadCsv(string $filename, array $rows): \Symfony\Component\HttpFoundation\Response

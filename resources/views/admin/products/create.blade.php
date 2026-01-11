@@ -13,7 +13,15 @@
             </div>
         </div>
 
-        <form id="product-create-form" class="grid gap-6 lg:grid-cols-[2fr_1fr]" method="POST" action="{{ route('admin.products.store') }}">
+        @php
+            $selectedColorIds = old('color_ids', []);
+            if (!is_array($selectedColorIds)) {
+                $selectedColorIds = [$selectedColorIds];
+            }
+            $selectedColorIds = array_map('intval', array_filter($selectedColorIds));
+        @endphp
+
+        <form id="product-create-form" class="grid gap-6 lg:grid-cols-[2fr_1fr]" method="POST" action="{{ route('admin.products.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="flex flex-col gap-6">
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
@@ -30,10 +38,31 @@
                                     <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
                                 @endforeach
                             </flux:select>
-                            <div class="flex items-end gap-2">
-                                <flux:input id="skuInput" name="sku" label="SKU" placeholder="PRD-1042" required />
-                                <flux:button id="generateSkuButton" type="button" variant="outline">Generate</flux:button>
-                            </div>
+                            <flux:input name="color" label="Color" placeholder="Black" value="{{ old('color') }}" />
+                        </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Color options</label>
+                            <select
+                                name="color_ids[]"
+                                multiple
+                                class="block h-40 w-full rounded-xl border border-zinc-200 bg-white p-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                                aria-describedby="colorOptionsHelp"
+                            >
+                                @if ($colors->isEmpty())
+                                    <option disabled>No colors defined yet</option>
+                                @else
+                                    @foreach ($colors as $color)
+                                        <option value="{{ $color->id }}" {{ in_array($color->id, $selectedColorIds) ? 'selected' : '' }}>
+                                            {{ $color->name }}{{ $color->hex ? " ({$color->hex})" : '' }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <p id="colorOptionsHelp" class="text-xs text-slate-500 dark:text-slate-400">Hold Ctrl (Windows) or Command (Mac) while selecting to choose multiple colors.</p>
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <flux:input id="skuInput" name="sku" label="SKU" placeholder="PRD-1042" required />
+                            <flux:button id="generateSkuButton" type="button" variant="outline">Generate</flux:button>
                         </div>
                     </div>
                 </div>
@@ -41,7 +70,7 @@
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-col gap-4">
                         <flux:heading size="lg" level="2">Media</flux:heading>
-                        <flux:input type="file" name="images" label="Product images" multiple />
+                        <flux:input type="file" name="images[]" label="Product images" multiple />
                         <div class="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 p-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800/60">
                             Drag and drop files or click to upload. Recommended 1600 x 1200px.
                         </div>
@@ -85,48 +114,54 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const button = document.getElementById('generateSkuButton');
-            const input = document.getElementById('skuInput');
-            const nameInput = document.getElementById('productNameInput');
-            const slugInput = document.getElementById('slugInput');
-            let slugTouched = false;
-            if (!button || !input) return;
+  document.addEventListener('DOMContentLoaded', () => {
+    const generateSkuButton = document.getElementById('generateSkuButton');
+    const skuInput = document.getElementById('skuInput');
+    const nameInput = document.getElementById('productNameInput');
+    const slugInput = document.getElementById('slugInput');
 
-            const generateSku = () => {
-                const stamp = Date.now().toString().slice(-4);
-                const random = Math.random().toString(36).slice(2, 6).toUpperCase();
-                return `PRD-${stamp}${random}`;
-            };
+    if (!nameInput || !slugInput) return;
 
-            button.addEventListener('click', () => {
-                input.value = generateSku();
-                input.dispatchEvent(new Event('input', { bubbles: true }));
-            });
+    const slugify = (value) =>
+      value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
 
-            if (slugInput) {
-                slugInput.addEventListener('input', () => {
-                    slugTouched = slugInput.value.trim().length > 0;
-                });
-            }
+    // Only becomes true when the USER edits the slug (not your JS).
+    let slugManuallyEdited = false;
 
-            if (nameInput && slugInput) {
-                const slugify = (value) => {
-                    return value
-                        .toLowerCase()
-                        .trim()
-                        .replace(/[^a-z0-9]+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-                };
+    slugInput.addEventListener('input', (e) => {
+      if (!e.isTrusted) return; // ignore programmatic updates
+      slugManuallyEdited = slugInput.value.trim().length > 0;
 
-                nameInput.addEventListener('input', () => {
-                    if (slugTouched && slugInput.value.trim().length) {
-                        return;
-                    }
-                    slugInput.value = slugify(nameInput.value);
-                    slugInput.dispatchEvent(new Event('input', { bubbles: true }));
-                });
-            }
-        });
-    </script>
+      // If user clears slug, allow auto-fill again.
+      if (slugInput.value.trim().length === 0) {
+        slugManuallyEdited = false;
+      }
+    });
+
+    nameInput.addEventListener('input', () => {
+      if (slugManuallyEdited && slugInput.value.trim().length > 0) return;
+
+      slugInput.value = slugify(nameInput.value);
+      slugInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    // SKU generator (unchanged, but guarded)
+    if (generateSkuButton && skuInput) {
+      const generateSku = () => {
+        const stamp = Date.now().toString().slice(-4);
+        const random = Math.random().toString(36).slice(2, 6).toUpperCase();
+        return `PRD-${stamp}${random}`;
+      };
+
+      generateSkuButton.addEventListener('click', () => {
+        skuInput.value = generateSku();
+        skuInput.dispatchEvent(new Event('input', { bubbles: true }));
+      });
+    }
+  });
+</script>
 @endsection

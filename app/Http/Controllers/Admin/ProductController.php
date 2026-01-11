@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Color;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -14,6 +16,7 @@ class ProductController extends Controller
     public function index()
     {
         $products = Product::with('category')->latest()->paginate(12);
+
         $stats = [
             'total' => Product::count(),
             'active' => Product::where('is_active', true)->count(),
@@ -27,8 +30,8 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::orderBy('name')->get();
-
-        return view('admin.products.create', compact('categories'));
+        $colors = Color::orderBy('name')->get();
+        return view('admin.products.create', compact('categories', 'colors'));
     }
 
     public function store(Request $request)
@@ -42,29 +45,56 @@ class ProductController extends Controller
             'slug' => ['required', 'string', 'max:255', 'unique:products,slug'],
             'summary' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
+            'features' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
             'price' => ['required', 'numeric', 'min:0'],
             'compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
+            'color' => ['nullable', 'string', 'max:60'], // NEW
             'stock' => ['required', 'integer', 'min:0'],
             'weight_grams' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
+
+            'images' => ['nullable', 'array'],
+            'images.*' => ['file', 'image', 'max:5120'],
+            'color_ids' => ['nullable', 'array'],
+            'color_ids.*' => ['integer', 'exists:colors,id'],
         ]);
 
         $data['is_active'] = (bool) $request->input('is_active', true);
+        $data['features'] = $this->normalizeFeatures(
+            $request->input('features'),
+            $data['description'] ?? null,
+            5
+        );
 
-        Product::create($data);
+        $colorIds = $this->sanitizeColorIds($request->input('color_ids', []));
+        $data['colors'] = $this->resolveColorLabels($colorIds);
 
-        return redirect()
-            ->route('admin.products.index')
-            ->with('status', 'Product created.');
+        [$primary, $gallery] = $this->storeImages($request);
+        if ($primary !== null) {
+            $data['image'] = $primary;
+            $data['thumbnail'] = $primary;
+            $data['gallery'] = $gallery;
+
+            $allImages = $this->buildImageSet($primary, $gallery);
+            if ($allImages !== null) {
+                $data['images'] = $allImages;
+            }
+        }
+
+        $product = Product::create($data);
+        $product->colorOptions()->sync($colorIds);
+
+        return redirect()->route('admin.products.index')->with('status', 'Product created.');
     }
 
     public function edit(Product $product)
     {
+        $product->load('colorOptions');
         $categories = Category::orderBy('name')->get();
-
-        return view('admin.products.edit', compact('product', 'categories'));
+        $colors = Color::orderBy('name')->get();
+        return view('admin.products.edit', compact('product', 'categories', 'colors'));
     }
 
     public function update(Request $request, Product $product)
@@ -78,21 +108,135 @@ class ProductController extends Controller
             'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product->id)],
             'summary' => ['nullable', 'string', 'max:500'],
             'description' => ['nullable', 'string'],
+            'features' => ['nullable', 'string'],
             'category_id' => ['required', 'exists:categories,id'],
             'price' => ['required', 'numeric', 'min:0'],
             'compare_at_price' => ['nullable', 'numeric', 'min:0'],
             'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product->id)],
+            'color' => ['nullable', 'string', 'max:60'], // NEW
             'stock' => ['required', 'integer', 'min:0'],
             'weight_grams' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
+
+            'images' => ['nullable', 'array'],
+            'images.*' => ['file', 'image', 'max:5120'],
+            'color_ids' => ['nullable', 'array'],
+            'color_ids.*' => ['integer', 'exists:colors,id'],
         ]);
 
         $data['is_active'] = (bool) $request->input('is_active', true);
+        $data['features'] = $this->normalizeFeatures(
+            $request->input('features'),
+            $data['description'] ?? null,
+            5
+        );
+
+        $colorIds = $this->sanitizeColorIds($request->input('color_ids', []));
+        $data['colors'] = $this->resolveColorLabels($colorIds);
+
+        if ($request->hasFile('images')) {
+            [$primary, $gallery] = $this->storeImages($request);
+            $allImages = $this->buildImageSet($primary, $gallery);
+
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+            foreach (($product->gallery ?? []) as $old) {
+                Storage::disk('public')->delete($old);
+            }
+
+            $data['image'] = $primary;
+            $data['thumbnail'] = $primary;
+            $data['gallery'] = $gallery;
+            if ($allImages !== null) {
+                $data['images'] = $allImages;
+            }
+        }
 
         $product->update($data);
+        $product->colorOptions()->sync($colorIds);
 
-        return redirect()
-            ->route('admin.products.edit', $product)
-            ->with('status', 'Product updated.');
+        return redirect()->route('admin.products.edit', $product)->with('status', 'Product updated.');
+    }
+
+    private function normalizeFeatures(mixed $featuresInput, ?string $fallbackDescription, int $take = 5): array
+    {
+        if (is_array($featuresInput)) {
+            return collect($featuresInput)->map(fn ($v) => trim((string) $v))->filter()->take($take)->values()->all();
+        }
+
+        if (is_string($featuresInput) && trim($featuresInput) !== '') {
+            return collect(preg_split('/\r\n|\r|\n/', $featuresInput))
+                ->map(fn ($v) => trim((string) $v))
+                ->filter()
+                ->take($take)
+                ->values()
+                ->all();
+        }
+
+        if (is_string($fallbackDescription) && trim($fallbackDescription) !== '') {
+            return collect(preg_split('/\r\n|\r|\n/', $fallbackDescription))
+                ->map(fn ($v) => trim((string) $v))
+                ->filter()
+                ->take($take)
+                ->values()
+                ->all();
+        }
+
+        return [];
+    }
+
+    private function storeImages(Request $request): array
+    {
+        $files = $request->file('images', []);
+
+        if (!is_array($files) || count($files) === 0) {
+            return [null, null];
+        }
+
+        $paths = [];
+        foreach ($files as $file) {
+            $paths[] = Storage::disk('public')->putFile('product', $file);
+        }
+
+        $primary = array_shift($paths);
+        $gallery = count($paths) ? $paths : null;
+
+        return [$primary, $gallery];
+    }
+
+    private function buildImageSet(?string $primary, ?array $gallery): ?array
+    {
+        if (!$primary) {
+            return null;
+        }
+
+        $images = [$primary];
+        if (is_array($gallery)) {
+            $images = array_merge($images, $gallery);
+        }
+
+        return array_values($images);
+    }
+
+    private function sanitizeColorIds(mixed $input): array
+    {
+        $values = array_filter((array) $input, fn ($value) => $value !== null && $value !== '');
+        return array_values(array_map('intval', $values));
+    }
+
+    private function resolveColorLabels(array $colorIds): array
+    {
+        if (empty($colorIds)) {
+            return [];
+        }
+
+        return Color::query()
+            ->whereIn('id', $colorIds)
+            ->get()
+            ->map(fn (Color $color) => $color->hex ?: $color->name)
+            ->filter()
+            ->values()
+            ->all();
     }
 }

@@ -5,7 +5,9 @@
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="space-y-2">
                 <div class="inline-flex items-center gap-2 text-xs text-zinc-500">
-                    <span class="rounded-full border border-zinc-200 px-2 py-1 dark:border-zinc-700">Product ID: {{ $product->id }}</span>
+                    <span class="rounded-full border border-zinc-200 px-2 py-1 dark:border-zinc-700">
+                        Product ID: {{ $product->id }}
+                    </span>
                     <span class="rounded-full bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300">
                         {{ $product->is_active ? 'Active' : 'Draft' }}
                     </span>
@@ -20,33 +22,69 @@
             </div>
         </div>
 
-        <form id="product-edit-form" class="grid gap-6 lg:grid-cols-[2fr_1fr]" method="POST" action="{{ route('admin.products.update', $product) }}">
+        @php
+            $selectedColorIds = old('color_ids', $product->colorOptions->pluck('id')->toArray());
+            if (!is_array($selectedColorIds)) {
+                $selectedColorIds = [$selectedColorIds];
+            }
+            $selectedColorIds = array_map('intval', array_filter($selectedColorIds));
+        @endphp
+
+        <form id="product-edit-form" class="grid gap-6 lg:grid-cols-[2fr_1fr]" method="POST" action="{{ route('admin.products.update', $product) }}" enctype="multipart/form-data">
             @csrf
             @method('PUT')
+
             <div class="flex flex-col gap-6">
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-col gap-4">
                         <flux:heading size="lg" level="2">Product details</flux:heading>
+
                         <flux:input name="name" label="Product name" value="{{ $product->name }}" required />
                         <flux:input name="slug" label="Slug" value="{{ $product->slug }}" />
                         <flux:input name="summary" label="Summary" value="{{ $product->summary }}" />
                         <flux:textarea name="description" label="Description" rows="5">{{ $product->description }}</flux:textarea>
+
                         <div class="grid gap-4 md:grid-cols-2">
                             <flux:select name="category_id" label="Category" required>
                                 @foreach ($categories as $category)
-                                    <flux:select.option value="{{ $category->id }}" @selected($product->category_id === $category->id)>
+                                    <flux:select.option
+                                        value="{{ $category->id }}"
+                                        :selected="$product->category_id === $category->id"
+                                    >
                                         {{ $category->name }}
                                     </flux:select.option>
                                 @endforeach
                             </flux:select>
-                            <flux:input name="sku" label="SKU" value="{{ $product->sku }}" required />
+                            <flux:input name="color" label="Color" placeholder="Black" value="{{ old('color', $product->color) }}" />
                         </div>
+                        <div class="flex flex-col gap-2">
+                            <label class="text-sm font-medium text-slate-700 dark:text-slate-200">Color options</label>
+                            <select
+                                name="color_ids[]"
+                                multiple
+                                class="block h-40 w-full rounded-xl border border-zinc-200 bg-white p-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring focus:ring-blue-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-white"
+                                aria-describedby="colorOptionsHelpEdit"
+                            >
+                                @if ($colors->isEmpty())
+                                    <option disabled>No colors defined yet</option>
+                                @else
+                                    @foreach ($colors as $color)
+                                        <option value="{{ $color->id }}" {{ in_array($color->id, $selectedColorIds) ? 'selected' : '' }}>
+                                            {{ $color->name }}{{ $color->hex ? " ({$color->hex})" : '' }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                            <p id="colorOptionsHelpEdit" class="text-xs text-slate-500 dark:text-slate-400">Hold Ctrl (Windows) or Command (Mac) while selecting to choose multiple colors.</p>
+                        </div>
+                        <flux:input name="sku" label="SKU" value="{{ $product->sku }}" required />
                     </div>
                 </div>
 
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-col gap-4">
                         <flux:heading size="lg" level="2">Media</flux:heading>
+
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div class="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/60">
                                 <x-placeholder-pattern class="absolute inset-0 size-full stroke-zinc-400/30 dark:stroke-white/10" />
@@ -57,7 +95,8 @@
                                 <div class="relative z-10 text-sm text-zinc-500">Add more media</div>
                             </div>
                         </div>
-                        <flux:input type="file" name="images" label="Replace images" multiple />
+
+                        <flux:input type="file" name="images[]" label="Replace images" multiple />
                     </div>
                 </div>
             </div>
@@ -82,9 +121,10 @@
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-col gap-4">
                         <flux:heading size="lg" level="2">Status</flux:heading>
+
                         <flux:select name="is_active" label="Visibility">
-                            <flux:select.option value="1" @selected($product->is_active)>Active</flux:select.option>
-                            <flux:select.option value="0" @selected(! $product->is_active)>Draft</flux:select.option>
+                            <flux:select.option value="1" :selected="$product->is_active">Active</flux:select.option>
+                            <flux:select.option value="0" :selected="! $product->is_active">Draft</flux:select.option>
                         </flux:select>
                     </div>
                 </div>
