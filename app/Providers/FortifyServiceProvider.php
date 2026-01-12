@@ -6,10 +6,12 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\LoginResponse;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Models\User;
+use App\Services\Security\SecuritySettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -48,6 +50,16 @@ class FortifyServiceProvider extends ServiceProvider
 
             if (config('fortify.lowercase_usernames', true)) {
                 $username = Str::lower((string) $username);
+            }
+
+            $securitySettings = app(SecuritySettings::class);
+            if ($securitySettings->recaptchaEnabled()) {
+                $token = $request->input('g-recaptcha-response');
+                if (! $securitySettings->verifyRecaptcha($token, $request->ip())) {
+                    throw ValidationException::withMessages([
+                        'g-recaptcha-response' => __('reCAPTCHA verification failed.'),
+                    ]);
+                }
             }
 
             $user = User::where(Fortify::username(), $username)->first();

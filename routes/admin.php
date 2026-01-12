@@ -55,5 +55,7 @@ Route::middleware('web')->group(function () {
             ->name('admin.settings.index');
         Route::post('admin/settings/seo', [SettingsController::class, 'updateSeo'])
             ->name('admin.settings.seo');
+        Route::post('admin/settings/security', [SettingsController::class, 'updateSecurity'])
+            ->name('admin.settings.security');
     });
 });

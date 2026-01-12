@@ -5,6 +5,11 @@
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
+        @php
+            $recaptchaEnabled = $securitySetting?->recaptcha_enabled ?? false;
+            $socialProviders = collect($securitySetting?->social ?? [])->filter(fn ($config) => ! empty($config['client_id']));
+        @endphp
+
         <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
             @csrf
 
@@ -42,12 +47,36 @@
             <!-- Remember Me -->
             <flux:checkbox name="remember" :label="__('Remember me')" :checked="old('remember')" />
 
+            @if ($recaptchaEnabled && $securitySetting?->recaptcha_site_key)
+                <div class="mt-4">
+                    <div class="g-recaptcha" data-sitekey="{{ $securitySetting->recaptcha_site_key }}"></div>
+                </div>
+                @push('scripts')
+                    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+                @endpush
+            @endif
+
             <div class="flex items-center justify-end">
                 <flux:button variant="primary" type="submit" class="w-full" data-test="login-button">
                     {{ __('Log in') }}
                 </flux:button>
             </div>
         </form>
+
+        @if ($socialProviders->isNotEmpty())
+            <div class="mt-6 text-center">
+                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">or continue with</p>
+                <div class="mt-4 grid gap-3 md:grid-cols-3">
+                    @foreach ($socialProviders as $provider => $config)
+                        <a href="{{ route('auth.social.redirect', $provider) }}"
+                            class="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-300 hover:text-blue-900"
+                            aria-label="{{ ucfirst($provider) }} login">
+                            <span class="text-xs font-semibold uppercase tracking-[0.3em]">{{ strtoupper($provider) }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         @if (Route::has('register'))
             <div class="space-x-1 text-sm text-center rtl:space-x-reverse text-zinc-600 dark:text-zinc-400">
