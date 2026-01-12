@@ -19,6 +19,14 @@
     };
 
     $cartCount = count(session('cart', []));
+
+    $notificationUser = auth()->user();
+    $recentNotifications = $notificationUser
+        ? $notificationUser->notifications()->latest()->limit(4)->get()
+        : collect();
+    $unreadNotificationsCount = $notificationUser
+        ? $notificationUser->unreadNotifications()->count()
+        : 0;
 @endphp
 
 <header id="siteHeader"
@@ -241,73 +249,110 @@
 
                 <div class="dropdown relative hidden lg:block">
                     <button type="button" aria-label="Notifications" data-dropdown-target="desktop-notifications-menu"
-                        class="inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/70 text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-colors desktop-dropdown-toggle">
+                        class="relative inline-flex items-center justify-center h-10 w-10 rounded-full border border-slate-200/70 text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-colors desktop-dropdown-toggle">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="w-5 h-5">
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" />
                         </svg>
+                        @if ($unreadNotificationsCount > 0)
+                            <span
+                                class="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                                {{ $unreadNotificationsCount }}
+                            </span>
+                        @endif
                     </button>
                     <div id="desktop-notifications-menu"
-                        class="dropdown-content absolute top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 p-4 w-72 z-[70] hidden"
+                        class="dropdown-content absolute top-full mt-2 w-80 rounded-xl border border-gray-100 bg-white p-4 shadow-2xl transition-opacity duration-150 opacity-0 hidden z-[70]"
                         style="inset-inline-end: 0;">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
                                 <h4 class="font-bold text-slate-800">Notifications</h4>
-                                <button type="button"
-                                    class="text-xs font-semibold text-blue-600 hover:text-blue-700">Mark all
-                                    read</button>
+                                <a href="{{ route('notifications') }}"
+                                    class="text-xs font-semibold text-slate-500 hover:text-slate-800">View all</a>
                             </div>
-                            <div class="space-y-3">
-                                <div class="rounded-lg border border-slate-100 p-3">
-                                    <p class="text-sm font-semibold text-slate-800">Order shipped</p>
-                                    <p class="text-xs text-slate-500">Order #14034056 is on the way.</p>
+                            @if($recentNotifications->isEmpty())
+                                <p class="text-sm text-slate-500">You're all caught up.</p>
+                            @else
+                                <div class="space-y-2">
+                                    @foreach($recentNotifications as $notification)
+                                        @php
+                                            $data = $notification->data;
+                                            $isUnread = $notification->read_at === null;
+                                            $accent = $isUnread ? 'bg-blue-600/10 text-blue-600' : 'bg-slate-100 text-slate-500';
+                                        @endphp
+                                        <a href="{{ $data['url'] ?? route('notifications') }}"
+                                            class="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white px-3 py-2 transition hover:border-blue-200 hover:bg-slate-50">
+                                            <div
+                                                class="flex h-10 w-10 items-center justify-center rounded-xl {{ $accent }}">
+                                                <span class="text-xs font-semibold uppercase tracking-[0.4em]">
+                                                    {{ strtoupper(mb_substr($data['type'] ?? 'N', 0, 1)) }}
+                                                </span>
+                                            </div>
+                                            <div class="flex-1 text-sm">
+                                                <p class="font-semibold text-slate-900">{{ $data['title'] ?? 'Notification' }}</p>
+                                                <p class="text-slate-500">{{ $data['message'] ?? '' }}</p>
+                                                <p class="text-xs text-slate-400">{{ $notification->created_at->diffForHumans() }}</p>
+                                            </div>
+                                        </a>
+                                    @endforeach
                                 </div>
-                                <div class="rounded-lg border border-slate-100 p-3">
-                                    <p class="text-sm font-semibold text-slate-800">New message</p>
-                                    <p class="text-xs text-slate-500">Support replied to your request.</p>
-                                </div>
-                                <div class="rounded-lg border border-slate-100 p-3">
-                                    <p class="text-sm font-semibold text-slate-800">Weekly deals</p>
-                                    <p class="text-xs text-slate-500">New discounts available now.</p>
-                                </div>
-                            </div>
-                            <a href="/notifications"
-                                class="block text-sm font-semibold text-blue-600 hover:text-blue-700">View all</a>
+                            @endif
                         </div>
+                        <form method="POST" action="{{ route('notifications.markAllRead') }}">
+                            @csrf
+                            <button type="submit"
+                                class="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-slate-600 hover:border-blue-200 hover:text-blue-700">
+                                Mark all read
+                            </button>
+                        </form>
                     </div>
                 </div>
 
-                <!-- User Dropdown (desktop only) -->
-                <div class="dropdown relative hidden lg:block">
-                    <button type="button" data-dropdown-target="desktop-user-menu"
-                        class="inline-flex items-center justify-center text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:text-accent-foreground h-10 w-10 rounded-full hover:bg-black/5 relative group transition-colors desktop-dropdown-toggle">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                            stroke-linejoin="round"
-                            class="w-5 h-5 text-slate-600 group-hover:text-blue-600 transition-colors">
-                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="12" cy="7" r="4"></circle>
-                        </svg>
-                    </button>
-                    <div id="desktop-user-menu"
-                        class="dropdown-content absolute top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 p-4 min-w-[200px] z-[70] hidden"
-                        style="inset-inline-end: 0;">
-                        <div class="space-y-3">
-                            <h4 class="font-bold text-slate-800 mb-2">My Account</h4>
-                            <a href="/settings"
-                                class="block text-sm text-slate-600 hover:text-blue-600 transition-colors">Settings</a>
-                            <a href="/orders"
-                                class="block text-sm text-slate-600 hover:text-blue-600 transition-colors">Orders</a>
-                            <a href="/wishlist"
-                                class="block text-sm text-slate-600 hover:text-blue-600 transition-colors">Wishlist</a>
-                            <div class="pt-3 border-t border-gray-100">
-                                <a href="/login"
-                                    class="block text-sm text-blue-600 hover:text-blue-700 font-medium">Sign In</a>
+                @auth
+                    <div class="dropdown relative hidden lg:block">
+                        <button type="button" data-dropdown-target="desktop-user-menu"
+                            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-blue-600 hover:text-blue-600 desktop-dropdown-toggle">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor" class="h-4 w-4 text-slate-500">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 20a8 8 0 0 1 16 0" />
+                            </svg>
+                            My Account
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                class="h-3 w-3 text-slate-500 dropdown-arrow">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </button>
+                        <div id="desktop-user-menu"
+                            class="dropdown-content absolute top-full mt-2 w-44 rounded-xl border border-gray-100 bg-white p-3 shadow-2xl transition-opacity duration-150 opacity-0 hidden z-[70]"
+                            style="inset-inline-end: 0;">
+                            <div class="space-y-2 text-sm text-slate-700">
+                                <a href="{{ route('account.dashboard') }}"
+                                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">My Account</a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50">Logout</button>
+                                </form>
                             </div>
                         </div>
                     </div>
-                </div>
+                @else
+                    <div class="hidden lg:flex items-center gap-3">
+                        <a href="{{ route('login') }}"
+                            class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-blue-600 hover:text-blue-600">
+                            Login
+                        </a>
+                        @if(Route::has('register'))
+                            <a href="{{ route('register') }}"
+                                class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-blue-600 hover:text-blue-600">
+                                Register
+                            </a>
+                        @endif
+                    </div>
+                @endauth
             </div>
         </div>
 
@@ -376,30 +421,50 @@
                     class="block py-2 font-medium transition-colors {{ $mobileContact ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">Contact</a>
             </div>
 
-            <div class="mt-6 border-t border-gray-100 pt-4">
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 overflow-hidden rounded-full bg-slate-100">
-                        <img src="https://i.pravatar.cc/80?img=12" alt="Profile" class="h-full w-full object-cover">
+                <div class="mt-6 border-t border-gray-100 pt-4">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 12c2.21 0 4-1.79 4-4S14.21 4 12 4 8 5.79 8 8s1.79 4 4 4z"></path>
+                                <path d="M20 20c0-2.76-2.24-5-5-5H9c-2.76 0-5 2.24-5 5"></path>
+                            </svg>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-slate-900">
+                                {{ auth()->check() ? auth()->user()->name : 'Welcome back' }}
+                            </div>
+                            <div class="text-xs text-slate-500">
+                                {{ auth()->check() ? auth()->user()->email : 'Sign in to manage your account.' }}
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex-1">
-                        <div class="text-sm font-semibold text-slate-900">Tom Cook</div>
-                        <div class="text-xs text-slate-500">tom@example.com</div>
-                    </div>
-                    <button type="button"
-                        class="h-9 w-9 rounded-full border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
-                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" class="mx-auto">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2c0 .5-.2 1-.6 1.4L4 17h5m6 0a3 3 0 1 1-6 0" />
-                        </svg>
-                    </button>
+                    @auth
+                        <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
+                            <a href="{{ route('account.dashboard') }}"
+                                class="block py-2 hover:text-blue-600 transition-colors">My Account</a>
+                            <a href="{{ route('account.profile.edit') }}"
+                                class="block py-2 hover:text-blue-600 transition-colors">Profile</a>
+                            <a href="{{ route('account.orders.index') }}"
+                                class="block py-2 hover:text-blue-600 transition-colors">Orders</a>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full text-left py-2 text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors">Logout</button>
+                            </form>
+                        </div>
+                    @else
+                        <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
+                            <a href="{{ route('login') }}"
+                                class="block py-2 hover:text-blue-600 transition-colors">Login</a>
+                            @if(Route::has('register'))
+                                <a href="{{ route('register') }}"
+                                    class="block py-2 hover:text-blue-600 transition-colors">Register</a>
+                            @endif
+                        </div>
+                    @endauth
                 </div>
-                <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
-                    <a href="/profile" class="block py-2 hover:text-blue-600 transition-colors">Your profile</a>
-                    <a href="/settings" class="block py-2 hover:text-blue-600 transition-colors">Settings</a>
-                    <a href="/logout" class="block py-2 text-slate-500 hover:text-blue-600 transition-colors">Sign out</a>
-                </div>
-            </div>
 
         </div>
 
@@ -419,7 +484,7 @@
 @php
     $bottomHomeActive = $isActive(['home', '/']);
     $bottomShopActive = $isActive(['shop', 'shop/*']);
-    $bottomProfileActive = $isActive(['profile']);
+    $bottomProfileActive = $isActive(['profile', 'account*']);
 @endphp
 <nav
     class="fixed bottom-4 inset-x-4 bg-white/90 dark:bg-slate-950/85 backdrop-blur-xl border border-slate-200/70 dark:border-white/10 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.55)] rounded-2xl lg:hidden z-40">
@@ -471,7 +536,7 @@
             @endif
             Cart
         </button>
-        <a href="/setting"
+        <a href="{{ auth()->check() ? route('account.dashboard') : route('login') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomProfileActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -508,7 +573,7 @@
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-300">W</span>
                 Wishlist
             </a>
-            <a href="/orders"
+            <a href="{{ route('account.orders.index') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300">O</span>

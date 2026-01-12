@@ -2,6 +2,7 @@
 
 namespace App\Domain\Orders\Actions;
 
+use App\Notifications\OrderStatusNotification;
 use App\Domain\Orders\Actions\QuoteTotalsAction;
 use App\Models\Address;
 use App\Models\Cart;
@@ -20,7 +21,7 @@ class CreateOrderAction
 
     public function execute(Cart $cart, Address $shippingAddress, ?Address $billingAddress, array $data = []): Order
     {
-        $cart->loadMissing('items.product');
+        $cart->loadMissing('items.product', 'user');
 
         if ($cart->items->isEmpty()) {
             throw ValidationException::withMessages(['cart' => 'Cart is empty.']);
@@ -71,7 +72,11 @@ class CreateOrderAction
 
             $cart->items()->delete();
 
-            return $order->load(['items.product', 'shippingAddress', 'billingAddress']);
+            $order->load(['items.product', 'shippingAddress', 'billingAddress', 'user']);
+
+            $cart->user?->notify(new OrderStatusNotification($order, 'created'));
+
+            return $order;
         });
     }
 

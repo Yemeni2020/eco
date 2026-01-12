@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')->group(function () {
@@ -50,7 +51,9 @@ Route::middleware('web')->group(function () {
             ->name('admin.customers.index');
         Route::view('admin/reports', 'admin.reports.index')
             ->name('admin.reports.index');
-        Route::view('admin/settings', 'admin.settings.index')
+        Route::get('admin/settings', [SettingsController::class, 'index'])
             ->name('admin.settings.index');
+        Route::post('admin/settings/seo', [SettingsController::class, 'updateSeo'])
+            ->name('admin.settings.seo');
     });
 });

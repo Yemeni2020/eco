@@ -36,6 +36,9 @@ new class extends Component {
     }
 }; ?>
 
+@extends('admin.layouts.app')
+
+@section('content')
 <div class="space-y-0">
     <section class="bg-slate-900 text-white py-16">
         <div class="container mx-auto px-4">
@@ -75,9 +78,10 @@ new class extends Component {
                             />
 
                             <div class="flex items-center gap-4">
-                                <div class="flex items-center justify-end">
-                                    <flux:button variant="primary" type="submit" class="w-full" data-test="update-password-button">
-                                        {{ __('Save') }}
+                                <div class="flex flex-1 items-center justify-end">
+                                    <flux:button variant="primary" size="md" type="submit"
+                                        class="px-8 py-3 uppercase tracking-[0.4em]" data-test="update-password-button">
+                                        {{ __('Update password') }}
                                     </flux:button>
                                 </div>
 
@@ -110,5 +114,6 @@ new class extends Component {
                 </x-card>
             </aside>
         </div>
-    </section>
-</div>
+        </section>
+    </div>
+@endsection

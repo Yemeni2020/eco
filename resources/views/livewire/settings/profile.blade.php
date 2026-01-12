@@ -59,7 +59,8 @@ new class extends Component {
     }
 }; ?>
 
-<div class="min-h-screen bg-slate-50">
+<x-layouts.app.sidebar :title="__('Settings')">
+    <div class="min-h-screen bg-slate-50">
     <div class="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-10 lg:px-8">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -127,4 +128,5 @@ new class extends Component {
             </aside>
         </div>
     </div>
-</div>
+    </div>
+</x-layouts.app.sidebar>

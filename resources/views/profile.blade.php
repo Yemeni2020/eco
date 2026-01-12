@@ -107,7 +107,7 @@
                                     <x-input type="password" />
                                 </div>
                             </div>
-                            <x-button type="submit" variant="secondary" size="lg" class="rounded-full">Update
+                            <x-button type="submit" variant="secondary" size="sm" class="rounded-full">Update
                                 Password</x-button>
                         </form>
                     </x-card>

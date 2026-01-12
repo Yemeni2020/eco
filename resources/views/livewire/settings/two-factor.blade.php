@@ -177,8 +177,11 @@ new class extends Component {
     }
 }; ?>
 
+@extends('admin.layouts.app')
+
+@section('content')
 <div class="space-y-0">
-        <section class="bg-slate-900 text-white py-16">
+    <section class="bg-slate-900 text-white py-16">
             <div class="container mx-auto px-4">
                 <h1 class="text-4xl font-bold mb-2">{{ __('Settings') }}</h1>
                 <p class="text-slate-300">{{ __('Manage your account, security, and preferences.') }}</p>
@@ -265,4 +268,5 @@ new class extends Component {
                 </aside>
             </div>
         </section>
-</div>
+    </div>
+@endsection

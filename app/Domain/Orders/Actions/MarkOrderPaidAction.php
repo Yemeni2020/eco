@@ -4,6 +4,7 @@ namespace App\Domain\Orders\Actions;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\OrderStatusNotification;
 use Illuminate\Support\Facades\DB;
 
 class MarkOrderPaidAction
@@ -27,6 +28,9 @@ class MarkOrderPaidAction
             $order->status = 'processing';
             $order->payment_status = 'paid';
             $order->save();
+            $order->loadMissing('user');
+
+            $order->user?->notify(new OrderStatusNotification($order, 'processing'));
 
             return $order;
         });

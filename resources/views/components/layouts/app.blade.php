@@ -13,6 +13,10 @@
         window.tailwind.config = window.tailwind.config || {};
         window.tailwind.config.darkMode = 'class';
     </script>
+    @if (isset($seo))
+        {!! $seo->render() !!}
+        {!! $seo->renderJsonLd() ?? '' !!}
+    @endif
 </head>
 
 <body class="bg-gray-100 text-gray-900 min-h-screen expansion-alids-init">

@@ -4,6 +4,7 @@ namespace App\Domain\Orders\Actions;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\OrderStatusNotification;
 use Illuminate\Support\Facades\DB;
 
 class CancelOrderAction
@@ -28,6 +29,8 @@ class CancelOrderAction
                 $order->payment_status = 'failed';
             }
             $order->save();
+            $order->loadMissing('user');
+            $order->user?->notify(new OrderStatusNotification($order, 'cancelled'));
 
             return $order;
         });
