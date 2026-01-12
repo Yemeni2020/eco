@@ -1,5 +1,9 @@
 <div>
 
+    @php
+        $localeRouteParams = ['locale' => app()->getLocale()];
+    @endphp
+
     @if ($isOpen)
         <div id="cartBackdrop" wire:click="close" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70]"></div>
     @endif
@@ -20,7 +24,7 @@
                 Shopping Cart
             </h2>
             <div class="flex items-center gap-2">
-                <x-button-link href="{{ route('cart') }}" class="hover:bg-slate-100 rounded-md flex items-center">
+                <x-button-link href="{{ route('cart', $localeRouteParams) }}" class="hover:bg-slate-100 rounded-md flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
                         <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                         <path fill-rule="evenodd"
@@ -88,7 +92,7 @@
                 <span class="font-semibold text-slate-700">Subtotal:</span>
                 <span class="font-bold text-2xl text-blue-600"><x-currency :amount="number_format($this->subtotal, 2)" /></span>
             </div>
-            <x-button-link href="{{ route('checkout') }}" size="lg" variant="solid"
+            <x-button-link href="{{ route('checkout', $localeRouteParams) }}" size="lg" variant="solid"
                 class="w-full rounded-md text-lg">Proceed to Checkout</x-button-link>
         </div>
     </div>

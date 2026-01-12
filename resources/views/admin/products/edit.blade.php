@@ -38,12 +38,65 @@
                 <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                     <div class="flex flex-col gap-4">
                         <flux:heading size="lg" level="2">Product details</flux:heading>
+                        @php
+                            $locales = ['ar' => 'Arabic', 'en' => 'English'];
+                            $defaultLocale = config('app.locale', 'ar');
+                            $defaultLocaleSuffix = ucfirst($defaultLocale);
+                            $translationValue = function (string $field, string $locale) use ($product) {
+                                $old = old("{$field}.{$locale}");
+                                if ($old !== null) {
+                                    return $old;
+                                }
 
-                        <flux:input name="name" label="Product name" value="{{ $product->name }}" required />
-                        <flux:input name="slug" label="Slug" value="{{ $product->slug }}" />
-                        <flux:input name="summary" label="Summary" value="{{ $product->summary }}" />
-                        <flux:textarea name="description" label="Description" rows="5">{{ $product->description }}</flux:textarea>
-
+                                return $product->getTranslation("{$field}_translations", $locale, '');
+                            };
+                        @endphp
+                        <div class="flex flex-wrap items-center gap-2">
+                            @foreach ($locales as $code => $label)
+                                <button
+                                    type="button"
+                                    class="product-tab rounded-full border border-zinc-200 px-4 py-1 text-sm font-semibold transition {{ $code === $defaultLocale ? 'bg-slate-900 text-white' : 'bg-white text-slate-600 hover:border-slate-400' }}"
+                                    data-product-tab="{{ $code }}"
+                                >
+                                    {{ strtoupper($code) }} {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+                        <div class="space-y-4 mt-4">
+                            @foreach ($locales as $code => $label)
+                                <div
+                                    class="locale-panel rounded-2xl border border-zinc-200 bg-slate-50 p-4 {{ $code === $defaultLocale ? '' : 'hidden' }}"
+                                    data-locale-panel="{{ $code }}"
+                                >
+                                    <div class="flex items-center justify-between">
+                                        <flux:heading size="md" level="3">{{ $label }}</flux:heading>
+                                        <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">{{ strtoupper($code) }}</span>
+                                    </div>
+                                    <flux:input
+                                        id="productName{{ ucfirst($code) }}Input"
+                                        name="name[{{ $code }}]"
+                                        label="Product name"
+                                        placeholder="Lumina Desk Lamp"
+                                        value="{{ $translationValue('name', $code) }}"
+                                        @if($code === $defaultLocale) required @endif
+                                    />
+                                    <flux:input
+                                        id="slug{{ ucfirst($code) }}Input"
+                                        name="slug[{{ $code }}]"
+                                        label="Slug"
+                                        placeholder="lumina-desk-lamp"
+                                        value="{{ $translationValue('slug', $code) }}"
+                                    />
+                                    <flux:input
+                                        name="summary[{{ $code }}]"
+                                        label="Summary"
+                                        placeholder="Short summary for cards and listings"
+                                        value="{{ $translationValue('summary', $code) }}"
+                                    />
+                                    <flux:textarea name="description[{{ $code }}]" label="Description" rows="5">{{ $translationValue('description', $code) }}</flux:textarea>
+                                </div>
+                            @endforeach
+                        </div>
                         <div class="grid gap-4 md:grid-cols-2">
                             <flux:select name="category_id" label="Category" required>
                                 @foreach ($categories as $category)
@@ -132,3 +185,84 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+    <script>
+        (function () {
+            const defaultLocale = @json($defaultLocale);
+            const defaultLocaleSuffix = @json($defaultLocaleSuffix);
+
+            const initProductEdit = () => {
+                const buttons = document.querySelectorAll('[data-product-tab]');
+                const panels = document.querySelectorAll('[data-locale-panel]');
+
+                if (buttons.length && panels.length) {
+                    const setActive = (target) => {
+                        if (!target) return;
+
+                        buttons.forEach((button) => {
+                            const code = button.getAttribute('data-product-tab');
+                            const isActive = code === target;
+                            button.classList.toggle('bg-slate-900', isActive);
+                            button.classList.toggle('text-white', isActive);
+                            button.classList.toggle('text-slate-600', !isActive);
+                            button.classList.toggle('bg-white', !isActive);
+                        });
+
+                        panels.forEach((panel) => {
+                            panel.classList.toggle('hidden', panel.getAttribute('data-locale-panel') !== target);
+                        });
+                    };
+
+                    const hasTab = (value) => Array.from(buttons).some((button) => button.getAttribute('data-product-tab') === value);
+                    const defaultTab = hasTab(defaultLocale) ? defaultLocale : buttons[0]?.getAttribute('data-product-tab');
+                    if (defaultTab) {
+                        setActive(defaultTab);
+                    }
+
+                    buttons.forEach((button) => {
+                        button.addEventListener('click', () => {
+                            setActive(button.getAttribute('data-product-tab'));
+                        });
+                    });
+                }
+
+                const nameInput = document.getElementById(`productName${defaultLocaleSuffix}Input`);
+                const slugInput = document.getElementById(`slug${defaultLocaleSuffix}Input`);
+
+                if (!nameInput || !slugInput) {
+                    return;
+                }
+
+                const slugify = (value) =>
+                    value
+                        .toLowerCase()
+                        .trim()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+
+                let slugManuallyEdited = false;
+
+                slugInput.addEventListener('input', (event) => {
+                    if (!event.isTrusted) return;
+                    slugManuallyEdited = slugInput.value.trim().length > 0;
+                    if (slugInput.value.trim().length === 0) {
+                        slugManuallyEdited = false;
+                    }
+                });
+
+                nameInput.addEventListener('input', () => {
+                    if (slugManuallyEdited && slugInput.value.trim().length > 0) return;
+                    slugInput.value = slugify(nameInput.value);
+                    slugInput.dispatchEvent(new Event('input', { bubbles: true }));
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initProductEdit);
+            } else {
+                initProductEdit();
+            }
+        })();
+    </script>
+@endpush

@@ -32,6 +32,8 @@
 @php
     $localeCode = $currentLocale ?? app()->getLocale();
     $localePrefix = $localeCode ? '/' . trim($localeCode, '/') : '';
+    $localeRouteParams = $localeCode ? ['locale' => $localeCode] : [];
+    $routeLocalized = fn (string $name, array $params = []) => route($name, array_merge($localeRouteParams, $params));
 @endphp
 
 <header id="siteHeader"
@@ -75,7 +77,7 @@
             <!-- Desktop Navigation -->
             <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-700">
                 @php $homeActive = $isActive(['home', '/']); @endphp
-                <x-nav-link :href="route('home')" :active="$homeActive">{{ __('site.nav.home') }}</x-nav-link>
+                <x-nav-link :href="$routeLocalized('home')" :active="$homeActive">{{ __('site.nav.home') }}</x-nav-link>
 
                 <!-- Shop Dropdown -->
                 @php $shopActive = $isActive(['shop', 'shop/*']); @endphp
@@ -123,7 +125,7 @@
                             </div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-100">
-                            <a href="{{ route('shop') }}"
+                            <a href="{{ $routeLocalized('shop') }}"
                                 class="text-blue-600 hover:text-blue-700 font-medium text-sm">{{ __('site.nav.view_all_categories') }}</a>
                         </div>
                     </div>
@@ -183,10 +185,10 @@
                 </div>
 
                 @php $aboutActive = $isActive(['about']); @endphp
-                <x-nav-link :href="route('about')" :active="$aboutActive">{{ __('site.nav.about') }}</x-nav-link>
+                <x-nav-link :href="$routeLocalized('about')" :active="$aboutActive">{{ __('site.nav.about') }}</x-nav-link>
 
                 @php $contactActive = $isActive(['contact']); @endphp
-                <x-nav-link :href="route('contact')" :active="$contactActive">{{ __('site.nav.contact') }}</x-nav-link>
+                <x-nav-link :href="$routeLocalized('contact')" :active="$contactActive">{{ __('site.nav.contact') }}</x-nav-link>
             </nav>
 
             <!-- Search Bar -->
@@ -271,7 +273,7 @@
                         <div class="space-y-3">
                         <div class="flex items-center justify-between">
                             <h4 class="font-bold text-slate-800">{{ __('site.nav.notifications') }}</h4>
-                            <a href="{{ route('notifications') }}"
+                            <a href="{{ $routeLocalized('notifications') }}"
                                 class="text-xs font-semibold text-slate-500 hover:text-slate-800">{{ __('site.notifications.all') }}</a>
                         </div>
                             @if($recentNotifications->isEmpty())
@@ -284,7 +286,7 @@
                                             $isUnread = $notification->read_at === null;
                                             $accent = $isUnread ? 'bg-blue-600/10 text-blue-600' : 'bg-slate-100 text-slate-500';
                                         @endphp
-                                        <a href="{{ $data['url'] ?? route('notifications') }}"
+                                        <a href="{{ $data['url'] ?? $routeLocalized('notifications') }}"
                                             class="group flex items-start gap-3 rounded-xl border border-slate-100 bg-white px-3 py-2 transition hover:border-blue-200 hover:bg-slate-50">
                                             <div
                                                 class="flex h-10 w-10 items-center justify-center rounded-xl {{ $accent }}">
@@ -302,7 +304,7 @@
                                 </div>
                             @endif
                         </div>
-                        <form method="POST" action="{{ route('notifications.markAllRead') }}">
+                        <form method="POST" action="{{ $routeLocalized('notifications.markAllRead') }}">
                             @csrf
                             <button type="submit"
                                 class="mt-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-[0.4em] text-slate-600 hover:border-blue-200 hover:text-blue-700">
@@ -332,7 +334,7 @@
                             class="dropdown-content absolute top-full mt-2 w-44 rounded-xl border border-gray-100 bg-white p-3 shadow-2xl transition-opacity duration-150 opacity-0 hidden z-[70]"
                             style="inset-inline-end: 0;">
                             <div class="space-y-2 text-sm text-slate-700">
-                                <a href="{{ route('account.dashboard') }}"
+                                <a href="{{ $routeLocalized('account.dashboard') }}"
                                     class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">{{ __('site.nav.account') }}</a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
@@ -364,7 +366,7 @@
             class="lg:hidden mt-4 mobile-menu-transition opacity-0 -translate-y-2 pointer-events-none hidden">
             <div class="space-y-2 border-t border-gray-100 pt-4">
                 @php $mobileHome = $isActive(['home', '/']); @endphp
-                <a href="{{ route('home') }}"
+                <a href="{{ $routeLocalized('home') }}"
                     class="block py-2 font-medium transition-colors {{ $mobileHome ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">{{ __('site.nav.home') }}</a>
 
                 <!-- Mobile Shop Dropdown -->
@@ -417,9 +419,9 @@
 
                 @php $mobileAbout = $isActive(['about']); @endphp
                 @php $mobileContact = $isActive(['contact']); @endphp
-                <a href="{{ route('about') }}"
+                <a href="{{ $routeLocalized('about') }}"
                     class="block py-2 font-medium transition-colors {{ $mobileAbout ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">{{ __('site.nav.about') }}</a>
-                <a href="{{ route('contact') }}"
+                <a href="{{ $routeLocalized('contact') }}"
                     class="block py-2 font-medium transition-colors {{ $mobileContact ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">{{ __('site.nav.contact') }}</a>
             </div>
 
@@ -444,11 +446,11 @@
                     </div>
                     @auth
                         <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
-                            <a href="{{ route('account.dashboard') }}"
+                            <a href="{{ $routeLocalized('account.dashboard') }}"
                                 class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.account') }}</a>
-                            <a href="{{ route('account.profile.edit') }}"
+                                <a href="{{ $routeLocalized('account.profile.edit') }}"
                                 class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.profile') }}</a>
-                            <a href="{{ route('account.orders.index') }}"
+                                <a href="{{ $routeLocalized('account.orders.index') }}"
                                 class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.orders') }}</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -492,7 +494,7 @@
     class="fixed bottom-4 inset-x-4 bg-white/90 dark:bg-slate-950/85 backdrop-blur-xl border border-slate-200/70 dark:border-white/10 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.55)] rounded-2xl lg:hidden z-40">
     <div
         class="grid grid-cols-5 text-[11px] font-semibold text-slate-600 dark:text-slate-200 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
-        <a href="{{ route('home') }}"
+        <a href="{{ $routeLocalized('home') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomHomeActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor"
@@ -505,7 +507,7 @@
             <span
                 class="h-1 w-1 rounded-full {{ $bottomHomeActive ? 'bg-blue-600 dark:bg-cyan-300' : 'bg-transparent' }}"></span>
         </a>
-        <a href="{{ route('shop') }}"
+                <a href="{{ $routeLocalized('shop') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomShopActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor"
@@ -538,7 +540,7 @@
             @endif
             {{ __('site.nav.cart') }}
         </button>
-        <a href="{{ auth()->check() ? route('account.dashboard') : route('login') }}"
+        <a href="{{ auth()->check() ? $routeLocalized('account.dashboard') : route('login') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomProfileActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
@@ -569,19 +571,19 @@
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600/10 text-blue-700 dark:text-cyan-300">S</span>
                 {{ __('site.nav.quick_actions.search') }}
             </button>
-            <a href="{{ route('wishlist') }}"
+            <a href="{{ $routeLocalized('wishlist') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-300">W</span>
                 {{ __('site.nav.quick_actions.wishlist') }}
             </a>
-            <a href="{{ route('account.orders.index') }}"
+            <a href="{{ $routeLocalized('account.orders.index') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300">O</span>
                 {{ __('site.nav.quick_actions.orders') }}
             </a>
-            <a href="{{ route('contact') }}"
+            <a href="{{ $routeLocalized('contact') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">H</span>

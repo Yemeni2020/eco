@@ -10,7 +10,7 @@ class ListProductsAction
     public function execute(array $filters = [], int $perPage = 12, ?int $page = null): LengthAwarePaginator
     {
         $locale = app()->getLocale();
-        $localeNamePath = "json_unquote(json_extract(name_translations, '$.\"{$locale}\"'))";
+        $localeNamePath = "JSON_UNQUOTE(JSON_EXTRACT(name_translations, '$.\"{$locale}\"'))";
 
         $query = Product::query()->with('category')->active();
 

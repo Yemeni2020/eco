@@ -77,21 +77,9 @@ class Product extends Model
         return $this->getTranslation('name_translations', app()->getLocale(), $value);
     }
 
-    public function setNameAttribute($value): void
-    {
-        $this->setTranslation('name_translations', app()->getLocale(), $value);
-        $this->attributes['name'] = $value;
-    }
-
     public function getSlugAttribute($value): ?string
     {
         return $this->getTranslation('slug_translations', app()->getLocale(), $value);
-    }
-
-    public function setSlugAttribute($value): void
-    {
-        $this->setTranslation('slug_translations', app()->getLocale(), $value);
-        $this->attributes['slug'] = $value;
     }
 
     public function getSummaryAttribute($value): ?string
@@ -99,21 +87,9 @@ class Product extends Model
         return $this->getTranslation('summary_translations', app()->getLocale(), $value);
     }
 
-    public function setSummaryAttribute($value): void
-    {
-        $this->setTranslation('summary_translations', app()->getLocale(), $value);
-        $this->attributes['summary'] = $value;
-    }
-
     public function getDescriptionAttribute($value): ?string
     {
         return $this->getTranslation('description_translations', app()->getLocale(), $value);
-    }
-
-    public function setDescriptionAttribute($value): void
-    {
-        $this->setTranslation('description_translations', app()->getLocale(), $value);
-        $this->attributes['description'] = $value;
     }
 
     public function category(): BelongsTo

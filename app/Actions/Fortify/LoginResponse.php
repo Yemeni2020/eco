@@ -17,6 +17,6 @@ class LoginResponse implements LoginResponseContract
             return redirect()->intended(route('admin'));
         }
 
-        return redirect()->intended(route('home'));
+        return redirect()->intended(route('dashboard'));
     }
 }

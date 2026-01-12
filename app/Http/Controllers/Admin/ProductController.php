@@ -36,30 +36,19 @@ class ProductController extends Controller
 
     public function store(Request $request)
     {
-        $request->merge([
-            'slug' => $request->input('slug') ?: Str::slug((string) $request->input('name')),
-        ]);
+        $supportedLocales = config('app.supported_locales', ['ar', 'en']);
+        $defaultLocale = config('app.locale', 'ar');
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', 'unique:products,slug'],
-            'summary' => ['nullable', 'string', 'max:500'],
-            'description' => ['nullable', 'string'],
-            'features' => ['nullable', 'string'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'compare_at_price' => ['nullable', 'numeric', 'min:0'],
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
-            'color' => ['nullable', 'string', 'max:60'], // NEW
-            'stock' => ['required', 'integer', 'min:0'],
-            'weight_grams' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['sometimes', 'boolean'],
+        $slugInput = (array) $request->input('slug', []);
+        if (empty($slugInput[$defaultLocale])) {
+            $defaultNameValue = $request->input("name.{$defaultLocale}", $request->input('name.en', ''));
+            $slugInput[$defaultLocale] = Str::slug((string) $defaultNameValue);
+            $request->merge(['slug' => $slugInput]);
+        }
 
-            'images' => ['nullable', 'array'],
-            'images.*' => ['file', 'image', 'max:5120'],
-            'color_ids' => ['nullable', 'array'],
-            'color_ids.*' => ['integer', 'exists:colors,id'],
-        ]);
+        $data = $request->validate($this->productValidationRules($defaultLocale));
+        $translationPayload = $this->prepareTranslationPayload($data, $supportedLocales, $defaultLocale);
+        $data = array_merge($data, $translationPayload);
 
         $data['is_active'] = (bool) $request->input('is_active', true);
         $data['features'] = $this->normalizeFeatures(
@@ -99,30 +88,19 @@ class ProductController extends Controller
 
     public function update(Request $request, Product $product)
     {
-        $request->merge([
-            'slug' => $request->input('slug') ?: Str::slug((string) $request->input('name')),
-        ]);
+        $supportedLocales = config('app.supported_locales', ['ar', 'en']);
+        $defaultLocale = config('app.locale', 'ar');
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['required', 'string', 'max:255', Rule::unique('products', 'slug')->ignore($product->id)],
-            'summary' => ['nullable', 'string', 'max:500'],
-            'description' => ['nullable', 'string'],
-            'features' => ['nullable', 'string'],
-            'category_id' => ['required', 'exists:categories,id'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'compare_at_price' => ['nullable', 'numeric', 'min:0'],
-            'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product->id)],
-            'color' => ['nullable', 'string', 'max:60'], // NEW
-            'stock' => ['required', 'integer', 'min:0'],
-            'weight_grams' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['sometimes', 'boolean'],
+        $slugInput = (array) $request->input('slug', []);
+        if (empty($slugInput[$defaultLocale])) {
+            $defaultNameValue = $request->input("name.{$defaultLocale}", $request->input('name.en', ''));
+            $slugInput[$defaultLocale] = Str::slug((string) $defaultNameValue);
+            $request->merge(['slug' => $slugInput]);
+        }
 
-            'images' => ['nullable', 'array'],
-            'images.*' => ['file', 'image', 'max:5120'],
-            'color_ids' => ['nullable', 'array'],
-            'color_ids.*' => ['integer', 'exists:colors,id'],
-        ]);
+        $data = $request->validate($this->productValidationRules($defaultLocale, $product));
+        $translationPayload = $this->prepareTranslationPayload($data, $supportedLocales, $defaultLocale);
+        $data = array_merge($data, $translationPayload);
 
         $data['is_active'] = (bool) $request->input('is_active', true);
         $data['features'] = $this->normalizeFeatures(
@@ -238,5 +216,82 @@ class ProductController extends Controller
             ->filter()
             ->values()
             ->all();
+    }
+
+    private function productValidationRules(string $defaultLocale, ?Product $product = null): array
+    {
+        $slugRule = Rule::unique('products', 'slug');
+        if ($product) {
+            $slugRule = $slugRule->ignore($product->id);
+        }
+
+        return [
+            "name.{$defaultLocale}" => ['required', 'string', 'max:255'],
+            'name.en' => ['nullable', 'string', 'max:255'],
+            "slug.{$defaultLocale}" => ['required', 'string', 'max:255', $slugRule],
+            'slug.en' => ['nullable', 'string', 'max:255'],
+            "summary.{$defaultLocale}" => ['nullable', 'string', 'max:500'],
+            'summary.en' => ['nullable', 'string', 'max:500'],
+            "description.{$defaultLocale}" => ['nullable', 'string'],
+            'description.en' => ['nullable', 'string'],
+            "seo_title.{$defaultLocale}" => ['nullable', 'string', 'max:70'],
+            'seo_title.en' => ['nullable', 'string', 'max:70'],
+            "seo_description.{$defaultLocale}" => ['nullable', 'string', 'max:160'],
+            'seo_description.en' => ['nullable', 'string', 'max:160'],
+            "seo_keywords.{$defaultLocale}" => ['nullable', 'string'],
+            'seo_keywords.en' => ['nullable', 'string'],
+            'features' => ['nullable', 'string'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'price' => ['required', 'numeric', 'min:0'],
+            'compare_at_price' => ['nullable', 'numeric', 'min:0'],
+            'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($product->id ?? null)],
+            'color' => ['nullable', 'string', 'max:60'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'weight_grams' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['sometimes', 'boolean'],
+            'images' => ['nullable', 'array'],
+            'images.*' => ['file', 'image', 'max:5120'],
+            'color_ids' => ['nullable', 'array'],
+            'color_ids.*' => ['integer', 'exists:colors,id'],
+        ];
+    }
+
+    private function prepareTranslationPayload(array $validated, array $locales, string $defaultLocale): array
+    {
+        $fields = ['name', 'slug', 'summary', 'description', 'seo_title', 'seo_description', 'seo_keywords'];
+        $payload = [];
+
+        foreach ($fields as $field) {
+            $translations = $this->collectTranslations($validated[$field] ?? [], $locales);
+            $payload["{$field}_translations"] = $translations;
+            $fallbackValue = in_array($field, ['summary', 'description'], true) ? null : '';
+            $payload[$field] = $this->fallbackTranslation($translations, $defaultLocale, $fallbackValue);
+        }
+
+        return $payload;
+    }
+
+    private function collectTranslations(array $input, array $locales): array
+    {
+        $translations = [];
+        foreach ($locales as $locale) {
+            $translations[$locale] = trim((string) ($input[$locale] ?? ''));
+        }
+        return $translations;
+    }
+
+    private function fallbackTranslation(array $translations, string $defaultLocale, ?string $fallback = ''): ?string
+    {
+        if (($translations[$defaultLocale] ?? '') !== '') {
+            return $translations[$defaultLocale];
+        }
+
+        foreach ($translations as $value) {
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return $fallback;
     }
 }
