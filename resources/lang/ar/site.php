@@ -1,0 +1,41 @@
+<?php
+
+return [
+    'nav' => [
+        'home' => 'الرئيسية',
+        'shop' => 'المتجر',
+        'categories' => 'الفئات',
+        'about' => 'من نحن',
+        'contact' => 'اتصل بنا',
+        'notifications' => 'الإشعارات',
+        'orders' => 'الطلبات',
+        'profile' => 'الملف الشخصي',
+        'cart' => 'عربة التسوق',
+        'account' => 'حسابي',
+        'wishlist' => 'المفضلة',
+        'help' => 'مساعدة',
+        'login' => 'تسجيل الدخول',
+        'logout' => 'تسجيل الخروج',
+        'register' => 'إنشاء حساب',
+        'best_sellers' => 'الداخلية',
+        'trending' => 'الخارجية',
+        'new_arrivals' => 'الأداء',
+        'tech_gadgets' => 'التقنية والأجهزة',
+        'view_all_categories' => 'عرض جميع الفئات →',
+        'view_all_products' => 'عرض كل المنتجات →',
+        'search' => 'بحث',
+        'language' => 'اللغة',
+        'quick_actions' => [
+            'search' => 'بحث',
+            'wishlist' => 'المفضلة',
+            'orders' => 'الطلبات',
+            'help' => 'مساعدة',
+        ],
+    ],
+    'search_placeholder' => 'ابحث عن قطع...',
+    'language_label' => 'اللغة',
+    'notifications' => [
+        'all' => 'عرض الكل',
+        'empty' => 'لا يوجد إشعارات جديدة.',
+    ],
+];

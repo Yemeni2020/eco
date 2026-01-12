@@ -29,6 +29,11 @@
         : 0;
 @endphp
 
+@php
+    $localeCode = $currentLocale ?? app()->getLocale();
+    $localePrefix = $localeCode ? '/' . trim($localeCode, '/') : '';
+@endphp
+
 <header id="siteHeader"
     class="fixed inset-x-0 z-50 overflow-visible transition-all duration-300 border-b border-white/20 bg-white/50 backdrop-blur-lg supports-[backdrop-filter]:bg-white/40"
     style="top: var(--topbar-height, 0px);">
@@ -70,7 +75,7 @@
             <!-- Desktop Navigation -->
             <nav class="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-700">
                 @php $homeActive = $isActive(['home', '/']); @endphp
-                <x-nav-link :href="route('home')" :active="$homeActive">Home</x-nav-link>
+                <x-nav-link :href="route('home')" :active="$homeActive">{{ __('site.nav.home') }}</x-nav-link>
 
                 <!-- Shop Dropdown -->
                 @php $shopActive = $isActive(['shop', 'shop/*']); @endphp
@@ -78,7 +83,7 @@
                     <button type="button"
                         class="{{ $linkClass($shopActive) }} flex items-center cursor-pointer desktop-dropdown-toggle"
                         data-dropdown-target="desktop-shop-menu">
-                        Shop
+                        {{ __('site.nav.shop') }}
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                             fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                             stroke-linejoin="round"
@@ -91,7 +96,7 @@
                         class="dropdown-content absolute top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 p-4 min-w-[280px] z-[70] hidden">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <h4 class="font-bold text-slate-800 mb-2">Interior</h4>
+                                <h4 class="font-bold text-slate-800 mb-2">{{ __('site.nav.best_sellers') }}</h4>
                                 <ul class="space-y-2 text-sm text-slate-600">
                                     <li><a href="#" class="hover:text-blue-600 transition-colors">Seat Covers</a>
                                     </li>
@@ -104,7 +109,7 @@
                                 </ul>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-800 mb-2">Exterior</h4>
+                                <h4 class="font-bold text-slate-800 mb-2">{{ __('site.nav.trending') }}</h4>
                                 <ul class="space-y-2 text-sm text-slate-600">
                                     <li><a href="#" class="hover:text-blue-600 transition-colors">Body Kits</a>
                                     </li>
@@ -119,8 +124,7 @@
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-100">
                             <a href="{{ route('shop') }}"
-                                class="text-blue-600 hover:text-blue-700 font-medium text-sm">View All Categories
-                                -></a>
+                                class="text-blue-600 hover:text-blue-700 font-medium text-sm">{{ __('site.nav.view_all_categories') }}</a>
                         </div>
                     </div>
                 </div>
@@ -144,7 +148,7 @@
                         class="dropdown-content absolute top-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 p-4 min-w-[280px] z-[70] hidden">
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <h4 class="font-bold text-slate-800 mb-2">Performance</h4>
+                                <h4 class="font-bold text-slate-800 mb-2">{{ __('site.nav.new_arrivals') }}</h4>
                                 <ul class="space-y-2 text-sm text-slate-600">
                                     <li><a href="#" class="hover:text-blue-600 transition-colors">Exhaust
                                             Systems</a></li>
@@ -157,7 +161,7 @@
                                 </ul>
                             </div>
                             <div>
-                                <h4 class="font-bold text-slate-800 mb-2">Tech & Gadgets</h4>
+                                <h4 class="font-bold text-slate-800 mb-2">{{ __('site.nav.tech_gadgets') }}</h4>
                                 <ul class="space-y-2 text-sm text-slate-600">
                                     <li><a href="#" class="hover:text-blue-600 transition-colors">Dash Cams</a>
                                     </li>
@@ -171,22 +175,23 @@
                             </div>
                         </div>
                         <div class="mt-4 pt-4 border-t border-gray-100">
-                            <a href="/categories" class="text-blue-600 hover:text-blue-700 font-medium text-sm">View
-                                All Products -></a>
+                            <a href="{{ url($localePrefix . '/categories') }}" class="text-blue-600 hover:text-blue-700 font-medium text-sm">
+                                {{ __('site.nav.view_all_products') }}
+                            </a>
                         </div>
                     </div>
                 </div>
 
                 @php $aboutActive = $isActive(['about']); @endphp
-                <x-nav-link href="/about" :active="$aboutActive">About Us</x-nav-link>
+                <x-nav-link :href="route('about')" :active="$aboutActive">{{ __('site.nav.about') }}</x-nav-link>
 
                 @php $contactActive = $isActive(['contact']); @endphp
-                <x-nav-link href="/contact" :active="$contactActive">Contact</x-nav-link>
+                <x-nav-link :href="route('contact')" :active="$contactActive">{{ __('site.nav.contact') }}</x-nav-link>
             </nav>
 
             <!-- Search Bar -->
             <div class="hidden md:flex flex-1 max-w-md relative group">
-                <x-search placeholder="Search for parts..."
+                <x-search placeholder="{{ __('site.search_placeholder') }}"
                     inputClass="pl-4 pr-10 bg-white/50 border-slate-200/60 focus:bg-white/80 backdrop-blur-sm shadow-sm"
                     buttonClass="text-slate-400 hover:text-blue-600" class="w-full" />
             </div>
@@ -217,19 +222,17 @@
                             d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
                     </svg>
                 </button>
-                <button id="dirToggleButton" type="button" aria-label="Toggle direction"
-                    class="p-2 rounded-full hover:bg-black/5 transition-colors text-slate-700">
-                    <svg id="dirIconLtr" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M4 7.5h11.25M4 12h7.25M4 16.5h11.25M14 9l3.5-1.5L14 6" />
-                    </svg>
-                    <svg id="dirIconRtl" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5 hidden">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M20 7.5H8.75M20 12h-7.25M20 16.5H8.75M10 6l-3.5 1.5L10 9" />
-                    </svg>
-                </button>
+                <div class="hidden md:flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1">
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">{{ __('site.language_label') }}</span>
+                    <div class="flex gap-1">
+                        @foreach($availableLocales ?? [] as $code => $label)
+                            <a href="{{ route('language.switch', $code) }}"
+                                class="rounded-full px-2 text-[12px] font-semibold transition-colors {{ ($currentLocale ?? app()->getLocale()) === $code ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900' }}">
+                                {{ $label }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
                 <!-- Desktop Cart -->
                 <button id="cartButton" type="button"
                     class="hidden md:inline-flex items-center justify-center text-sm font-medium h-10 w-10 relative bg-slate-900/90 hover:bg-blue-600 text-white rounded-full transition-all duration-300 shadow-lg hover:shadow-blue-500/30 backdrop-blur-sm">
@@ -266,13 +269,13 @@
                         class="dropdown-content absolute top-full mt-2 w-80 rounded-xl border border-gray-100 bg-white p-4 shadow-2xl transition-opacity duration-150 opacity-0 hidden z-[70]"
                         style="inset-inline-end: 0;">
                         <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <h4 class="font-bold text-slate-800">Notifications</h4>
-                                <a href="{{ route('notifications') }}"
-                                    class="text-xs font-semibold text-slate-500 hover:text-slate-800">View all</a>
-                            </div>
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-slate-800">{{ __('site.nav.notifications') }}</h4>
+                            <a href="{{ route('notifications') }}"
+                                class="text-xs font-semibold text-slate-500 hover:text-slate-800">{{ __('site.notifications.all') }}</a>
+                        </div>
                             @if($recentNotifications->isEmpty())
-                                <p class="text-sm text-slate-500">You're all caught up.</p>
+                                <p class="text-sm text-slate-500">{{ __('site.notifications.empty') }}</p>
                             @else
                                 <div class="space-y-2">
                                     @foreach($recentNotifications as $notification)
@@ -318,7 +321,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 20a8 8 0 0 1 16 0" />
                             </svg>
-                            My Account
+                            {{ __('site.nav.account') }}
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
                                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                 class="h-3 w-3 text-slate-500 dropdown-arrow">
@@ -330,11 +333,11 @@
                             style="inset-inline-end: 0;">
                             <div class="space-y-2 text-sm text-slate-700">
                                 <a href="{{ route('account.dashboard') }}"
-                                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">My Account</a>
+                                    class="block rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-50">{{ __('site.nav.account') }}</a>
                                 <form method="POST" action="{{ route('logout') }}">
                                     @csrf
                                     <button type="submit"
-                                        class="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50">Logout</button>
+                                        class="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50">{{ __('site.nav.logout') }}</button>
                                 </form>
                             </div>
                         </div>
@@ -343,12 +346,12 @@
                     <div class="hidden lg:flex items-center gap-3">
                         <a href="{{ route('login') }}"
                             class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-blue-600 hover:text-blue-600">
-                            Login
+                            {{ __('site.nav.login') }}
                         </a>
                         @if(Route::has('register'))
                             <a href="{{ route('register') }}"
                                 class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-blue-600 hover:text-blue-600">
-                                Register
+                                {{ __('site.nav.register') }}
                             </a>
                         @endif
                     </div>
@@ -361,8 +364,8 @@
             class="lg:hidden mt-4 mobile-menu-transition opacity-0 -translate-y-2 pointer-events-none hidden">
             <div class="space-y-2 border-t border-gray-100 pt-4">
                 @php $mobileHome = $isActive(['home', '/']); @endphp
-                <a href="/"
-                    class="block py-2 font-medium transition-colors {{ $mobileHome ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">Home</a>
+                <a href="{{ route('home') }}"
+                    class="block py-2 font-medium transition-colors {{ $mobileHome ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">{{ __('site.nav.home') }}</a>
 
                 <!-- Mobile Shop Dropdown -->
                 <div class="mobile-dropdown">
@@ -376,14 +379,14 @@
                         </svg>
                     </button>
                     <div class="mobile-dropdown-content pl-4 mt-2 space-y-2 border-l border-gray-200">
-                        <a href="/shop/interior"
-                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Interior</a>
-                        <a href="/shop/exterior"
-                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Exterior</a>
-                        <a href="/shop/performance"
-                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Performance</a>
-                        <a href="/shop/electronics"
-                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Electronics</a>
+                        <a href="{{ url($localePrefix . '/shop/interior') }}"
+                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">{{ __('site.nav.best_sellers') }}</a>
+                        <a href="{{ url($localePrefix . '/shop/exterior') }}"
+                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">{{ __('site.nav.trending') }}</a>
+                        <a href="{{ url($localePrefix . '/shop/performance') }}"
+                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">{{ __('site.nav.new_arrivals') }}</a>
+                        <a href="{{ url($localePrefix . '/shop/electronics') }}"
+                            class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">{{ __('site.nav.tech_gadgets') }}</a>
                     </div>
                 </div>
 
@@ -400,13 +403,13 @@
                         </svg>
                     </button>
                     <div class="mobile-dropdown-content pl-4 mt-2 space-y-2 border-l border-gray-200">
-                        <a href="/categories/seat-covers"
+                        <a href="{{ url($localePrefix . '/categories/seat-covers') }}"
                             class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Seat Covers</a>
-                        <a href="/categories/floor-mats"
+                        <a href="{{ url($localePrefix . '/categories/floor-mats') }}"
                             class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Floor Mats</a>
-                        <a href="/categories/lighting"
+                        <a href="{{ url($localePrefix . '/categories/lighting') }}"
                             class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Lighting</a>
-                        <a href="/categories/dash-cams"
+                        <a href="{{ url($localePrefix . '/categories/dash-cams') }}"
                             class="block py-1 text-slate-600 hover:text-blue-600 transition-colors">Dash Cams</a>
                     </div>
 
@@ -414,11 +417,10 @@
 
                 @php $mobileAbout = $isActive(['about']); @endphp
                 @php $mobileContact = $isActive(['contact']); @endphp
-                <a href="/about"
-                    class="block py-2 font-medium transition-colors {{ $mobileAbout ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">About
-                    Us</a>
-                <a href="/contact"
-                    class="block py-2 font-medium transition-colors {{ $mobileContact ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">Contact</a>
+                <a href="{{ route('about') }}"
+                    class="block py-2 font-medium transition-colors {{ $mobileAbout ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">{{ __('site.nav.about') }}</a>
+                <a href="{{ route('contact') }}"
+                    class="block py-2 font-medium transition-colors {{ $mobileContact ? 'text-blue-600' : 'text-slate-700 hover:text-blue-600' }}">{{ __('site.nav.contact') }}</a>
             </div>
 
                 <div class="mt-6 border-t border-gray-100 pt-4">
@@ -443,24 +445,24 @@
                     @auth
                         <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
                             <a href="{{ route('account.dashboard') }}"
-                                class="block py-2 hover:text-blue-600 transition-colors">My Account</a>
+                                class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.account') }}</a>
                             <a href="{{ route('account.profile.edit') }}"
-                                class="block py-2 hover:text-blue-600 transition-colors">Profile</a>
+                                class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.profile') }}</a>
                             <a href="{{ route('account.orders.index') }}"
-                                class="block py-2 hover:text-blue-600 transition-colors">Orders</a>
+                                class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.orders') }}</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
-                                    class="w-full text-left py-2 text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors">Logout</button>
+                                class="w-full text-left py-2 text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors">{{ __('site.nav.logout') }}</button>
                             </form>
                         </div>
                     @else
                         <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
                             <a href="{{ route('login') }}"
-                                class="block py-2 hover:text-blue-600 transition-colors">Login</a>
+                                class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.login') }}</a>
                             @if(Route::has('register'))
                                 <a href="{{ route('register') }}"
-                                    class="block py-2 hover:text-blue-600 transition-colors">Register</a>
+                                class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.register') }}</a>
                             @endif
                         </div>
                     @endauth
@@ -471,7 +473,7 @@
         <!-- Mobile search -->
         <div id="mobileSearchBar"
             class="lg:hidden mt-4 mobile-menu-transition opacity-0 -translate-y-2 pointer-events-none hidden">
-            <x-search placeholder="Search for parts..."
+            <x-search placeholder="{{ __('site.search_placeholder') }}"
                 inputClass="pl-4 pr-10 bg-white border-slate-200 focus:bg-white shadow-sm"
                 buttonClass="text-slate-400 hover:text-blue-600" />
         </div>
@@ -490,7 +492,7 @@
     class="fixed bottom-4 inset-x-4 bg-white/90 dark:bg-slate-950/85 backdrop-blur-xl border border-slate-200/70 dark:border-white/10 shadow-[0_18px_45px_-24px_rgba(15,23,42,0.55)] rounded-2xl lg:hidden z-40">
     <div
         class="grid grid-cols-5 text-[11px] font-semibold text-slate-600 dark:text-slate-200 py-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
-        <a href="/"
+        <a href="{{ route('home') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomHomeActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor"
@@ -499,11 +501,11 @@
                     d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
             </svg>
 
-            Home
+            {{ __('site.nav.home') }}
             <span
                 class="h-1 w-1 rounded-full {{ $bottomHomeActive ? 'bg-blue-600 dark:bg-cyan-300' : 'bg-transparent' }}"></span>
         </a>
-        <a href="/shop"
+        <a href="{{ route('shop') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomShopActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor"
@@ -512,7 +514,7 @@
                     d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
             </svg>
 
-            Shop
+            {{ __('site.nav.shop') }}
             <span
                 class="h-1 w-1 rounded-full {{ $bottomShopActive ? 'bg-blue-600 dark:bg-cyan-300' : 'bg-transparent' }}"></span>
         </a>
@@ -534,7 +536,7 @@
                 <span
                     class="absolute top-1 right-3 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center ring-2 ring-white/80 dark:ring-slate-900/90">{{ $cartCount }}</span>
             @endif
-            Cart
+            {{ __('site.nav.cart') }}
         </button>
         <a href="{{ auth()->check() ? route('account.dashboard') : route('login') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomProfileActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
@@ -544,7 +546,7 @@
                 <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
             </svg>
-            Profile
+            {{ __('site.nav.profile') }}
             <span
                 class="h-1 w-1 rounded-full {{ $bottomProfileActive ? 'bg-blue-600 dark:bg-cyan-300' : 'bg-transparent' }}"></span>
         </a>
@@ -565,25 +567,25 @@
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-600/10 text-blue-700 dark:text-cyan-300">S</span>
-                Search
+                {{ __('site.nav.quick_actions.search') }}
             </button>
-            <a href="/wishlist"
+            <a href="{{ route('wishlist') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-rose-500/10 text-rose-600 dark:text-rose-300">W</span>
-                Wishlist
+                {{ __('site.nav.quick_actions.wishlist') }}
             </a>
             <a href="{{ route('account.orders.index') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-300">O</span>
-                Orders
+                {{ __('site.nav.quick_actions.orders') }}
             </a>
-            <a href="/contact"
+            <a href="{{ route('contact') }}"
                 class="nav-press flex items-center gap-3 rounded-xl border border-slate-200/70 dark:border-white/10 px-3 py-3 bg-white/60 dark:bg-slate-900/60">
                 <span
                     class="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-300">H</span>
-                Help
+                {{ __('site.nav.quick_actions.help') }}
             </a>
         </div>
     </div>

@@ -9,14 +9,17 @@ class ListProductsAction
 {
     public function execute(array $filters = [], int $perPage = 12, ?int $page = null): LengthAwarePaginator
     {
+        $locale = app()->getLocale();
+        $localeNamePath = "json_unquote(json_extract(name_translations, '$.\"{$locale}\"'))";
+
         $query = Product::query()->with('category')->active();
 
         if (!empty($filters['search'])) {
             $search = trim($filters['search']);
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('summary', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search, $locale) {
+                $q->where("name_translations->{$locale}", 'like', "%{$search}%")
+                    ->orWhere("summary_translations->{$locale}", 'like', "%{$search}%")
+                    ->orWhere("description_translations->{$locale}", 'like', "%{$search}%");
             });
         }
 
@@ -42,13 +45,13 @@ class ListProductsAction
         } elseif ($sort === 'price-desc') {
             $query->orderByDesc('price');
         } elseif ($sort === 'name-asc') {
-            $query->orderBy('name');
+            $query->orderByRaw($localeNamePath);
         } elseif ($sort === 'name-desc') {
-            $query->orderByDesc('name');
+            $query->orderByRaw("{$localeNamePath} DESC");
         } elseif ($sort === 'newest') {
             $query->orderByDesc('created_at');
         } else {
-            $query->orderBy('name');
+            $query->orderByRaw($localeNamePath);
         }
 
         $paginator = $query->paginate($perPage, ['*'], 'page', $page);

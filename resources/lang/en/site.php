@@ -1,0 +1,42 @@
+<?php
+
+return [
+    'nav' => [
+        'home' => 'Home',
+        'shop' => 'Shop',
+        'categories' => 'Categories',
+        'about' => 'About Us',
+        'contact' => 'Contact',
+        'notifications' => 'Notifications',
+        'orders' => 'Orders',
+        'profile' => 'Profile',
+        'cart' => 'Cart',
+        'account' => 'My Account',
+        'wishlist' => 'Wishlist',
+        'help' => 'Help',
+        'login' => 'Login',
+        'logout' => 'Logout',
+        'register' => 'Register',
+        'best_sellers' => 'Interior',
+        'trending' => 'Exterior',
+        'new_arrivals' => 'Performance',
+        'tech_gadgets' => 'Tech & Gadgets',
+        'view_all_categories' => 'View All Categories →',
+        'view_all_products' => 'View All Products →',
+        'recent' => 'Recent',
+        'search' => 'Search',
+        'language' => 'Language',
+        'quick_actions' => [
+            'search' => 'Search',
+            'wishlist' => 'Wishlist',
+            'orders' => 'Orders',
+            'help' => 'Help',
+        ],
+    ],
+    'search_placeholder' => 'Search for parts...',
+    'language_label' => 'Language',
+    'notifications' => [
+        'all' => 'View all',
+        'empty' => "You're all caught up.",
+    ],
+];

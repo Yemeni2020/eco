@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ $htmlLang ?? app()->getLocale() ?? 'en' }}" dir="{{ $htmlDir ?? 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
@@ -15,7 +15,7 @@
     </script>
 </head>
 
-<body class="bg-gray-100 text-gray-900 min-h-screen expansion-alids-init">
+<body dir="{{ $htmlDir ?? 'ltr' }}" class="bg-gray-100 text-gray-900 min-h-screen expansion-alids-init {{ ($htmlDir ?? 'ltr') === 'rtl' ? 'not-italic' : '' }}">
     <div id="pageLoader" class="fixed inset-0 z-[9999] flex min-h-screen items-center justify-center bg-[#f5f9ff]">
         <div class="flex flex-col items-center gap-6">
             <div class="relative h-16 w-16">
@@ -124,9 +124,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const themeToggleButton = document.getElementById('themeToggleButton');
     const themeIconSun = document.getElementById('themeIconSun');
     const themeIconMoon = document.getElementById('themeIconMoon');
-    const dirToggleButton = document.getElementById('dirToggleButton');
-    const dirIconLtr = document.getElementById('dirIconLtr');
-    const dirIconRtl = document.getElementById('dirIconRtl');
     const root = document.documentElement;
 
     // Theme
@@ -171,29 +168,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const next = root.classList.contains('dark') ? 'light' : 'dark';
             localStorage.setItem('theme', next);
             applyTheme(next);
-        });
-    }
-
-    // Direction (LTR/RTL)
-    const applyDir = (dir) => {
-        root.setAttribute('dir', dir);
-        if (dirIconLtr && dirIconRtl) {
-            if (dir === 'rtl') {
-                dirIconLtr.classList.add('hidden');
-                dirIconRtl.classList.remove('hidden');
-            } else {
-                dirIconLtr.classList.remove('hidden');
-                dirIconRtl.classList.add('hidden');
-            }
-        }
-    };
-    const storedDir = localStorage.getItem('dir');
-    applyDir(storedDir || 'ltr');
-    if (dirToggleButton) {
-        dirToggleButton.addEventListener('click', () => {
-            const next = root.getAttribute('dir') === 'rtl' ? 'ltr' : 'rtl';
-            localStorage.setItem('dir', next);
-            applyDir(next);
         });
     }
 
