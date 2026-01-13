@@ -33,6 +33,11 @@ Route::get('/{locale?}/product/{slug}', [ProductController::class, 'show'])
     ->middleware('setLocale')
     ->name('product.show');
 
+Route::post('/{locale?}/product/{slug}/reviews', [ProductController::class, 'storeReview'])
+    ->where('locale', $localePattern)
+    ->middleware('setLocale')
+    ->name('product.reviews.store');
+
 Route::get('/shop/{slug}', function (string $slug) {
     return redirect()->route('product.show', ['slug' => $slug], 301);
 });

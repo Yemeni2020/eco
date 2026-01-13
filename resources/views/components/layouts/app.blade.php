@@ -75,7 +75,6 @@
     </div>
 
     @livewireScripts
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.12.0/dist/cdn.min.js"></script>
     @stack('scripts')
 <script>
 
@@ -439,6 +438,82 @@ window.addEventListener('notify', (event) => {
     body.querySelector('button').addEventListener('click', remove, { once: true });
     setTimeout(remove, 3000);
 });
+
+const setActiveTab = (group, target) => {
+    const triggers = Array.from(group.querySelectorAll('[data-tab-trigger]'));
+    const panels = Array.from(group.querySelectorAll('[data-tab-content]'));
+
+    triggers.forEach((btn) => {
+        const isActive = btn.dataset.tabTrigger === target;
+        btn.setAttribute('aria-selected', isActive);
+        btn.dataset.state = isActive ? 'active' : 'inactive';
+        btn.tabIndex = isActive ? 0 : -1;
+    });
+
+    panels.forEach((panel) => {
+        const isActive = panel.dataset.tabContent === target;
+        panel.dataset.state = isActive ? 'active' : 'inactive';
+        panel.hidden = !isActive;
+    });
+};
+
+const initTabGroups = () => {
+    document.querySelectorAll('[data-tab-group]').forEach((group) => {
+        const triggers = Array.from(group.querySelectorAll('[data-tab-trigger]'));
+        if (!triggers.length) return;
+        const initial = triggers.find((btn) => btn.dataset.state === 'active' || btn.getAttribute('aria-selected') === 'true') || triggers[0];
+        if (initial?.dataset?.tabTrigger) {
+            setActiveTab(group, initial.dataset.tabTrigger);
+        }
+    });
+};
+
+document.addEventListener('click', (event) => {
+    const el = event.target instanceof Element ? event.target : null;
+    if (!el) return;
+
+    const trigger = el.closest('[data-tab-trigger]');
+    if (trigger) {
+        const group = trigger.closest('[data-tab-group]');
+        if (!group) return;
+        setActiveTab(group, trigger.dataset.tabTrigger);
+        return;
+    }
+
+    const openButton = el.closest('[data-review-open]');
+    if (openButton) {
+        const modal = document.getElementById('reviewModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+        return;
+    }
+
+    const closeButton = el.closest('[data-review-close]');
+    if (closeButton) {
+        const modal = document.getElementById('reviewModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+        return;
+    }
+
+    const modal = document.getElementById('reviewModal');
+    if (modal && event.target === modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+});
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTabGroups);
+} else {
+    initTabGroups();
+}
+document.addEventListener('livewire:navigated', initTabGroups);
+document.addEventListener('livewire:load', initTabGroups);
 
 // Silence noisy message events (keeps first-party messages working)
 const shouldBlockMessageEvent = (event) => {

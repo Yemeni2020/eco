@@ -6,7 +6,9 @@ use App\Domain\Catalog\Actions\ListCategoriesAction;
 use App\Domain\Catalog\Actions\ListProductsAction;
 use App\Domain\Catalog\Actions\ShowProductAction;
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use App\Support\LocaleSegment;
 
 class ProductController extends Controller
@@ -92,6 +94,7 @@ class ProductController extends Controller
                 is_array($product->gallery) ? $product->gallery : []
             )));
         }
+        $images = array_values(array_filter(array_map([$this, 'resolveMediaUrl'], $images)));
 
         $visibleColors = $product->colorOptions->map(function ($color) use ($baseLocale) {
             return [
@@ -106,39 +109,102 @@ class ProductController extends Controller
             ];
         })->values()->all();
 
+        $rating = $product->rating;
+        $reviews = $product->reviews_count;
+
+        if ($rating === null || $reviews === null) {
+            $stats = $product->reviews()
+                ->selectRaw('COALESCE(AVG(rating),0) as avg_rating, COUNT(*) as cnt')
+                ->first();
+
+            $rating = (float) ($stats->avg_rating ?? 0);
+            $reviews = (int) ($stats->cnt ?? 0);
+        } else {
+            $rating = (float) $rating;
+            $reviews = (int) $reviews;
+        }
+
+        $descriptionValue = trim((string) $description);
+        $availableStock = $product->availableStock();
+        $recentReviews = $product->reviews()
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $defaultShipping = [
+            $availableStock > 0 ? 'Ships in 1-2 business days.' : 'Ships in 7-10 business days.',
+            'Free 30-day returns on unused items.',
+            'Warranty support included.',
+        ];
+        $shippingReturns = is_array($product->shipping_returns) && count($product->shipping_returns)
+            ? $product->shipping_returns
+            : $defaultShipping;
+
+        $product->setAttribute('rating', round($rating, 1));
+        $product->setAttribute('reviews_count', $reviews);
+        $product->setAttribute('summary', $product->summary ?: $product->description);
+        $product->setAttribute('description', $descriptionValue ?: ($product->summary ?: ''));
+        $product->setAttribute('features', $features);
+        $product->setAttribute('shipping_returns', $shippingReturns);
+        $product->setAttribute('image', $images[0] ?? $this->resolveMediaUrl($product->image));
+        $product->setAttribute('stock_label', $availableStock > 0 ? 'In stock' : 'Out of stock');
+        $product->setAttribute('stock', $availableStock);
+        $product->setAttribute('colors', $visibleColors);
+        $product->setAttribute('category_name', $product->category?->name ?? '-');
+        $product->setAttribute('localized_slug', $slugCurrent ?? $product->slug);
+
+        return view('pages.shop.show', [
+            'productModel' => $product,
+            'recentReviews' => $recentReviews,
+        ]);
+    }
+
+    private function resolveMediaUrl(?string $path): ?string
+    {
+        if (!$path) {
+            return null;
+        }
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://') || str_starts_with($path, '/')) {
+            return $path;
+        }
+        if (Storage::disk('public')->exists("product/{$path}")) {
+            return Storage::url("product/{$path}");
+        }
+        return Storage::url($path);
+    }
+
+    public function storeReview(Request $request, ?string $locale, string $slug, ShowProductAction $showProductAction)
+    {
+        $request->validate([
+            'reviewer_name' => ['required', 'string', 'max:120'],
+            'rating' => ['required', 'integer', 'min:1', 'max:5'],
+            'body' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $product = $showProductAction->execute($slug);
+
+        $product->reviews()->create([
+            'reviewer_name' => $request->input('reviewer_name'),
+            'rating' => (int) $request->input('rating'),
+            'body' => $request->input('body'),
+        ]);
+
         $stats = $product->reviews()
             ->selectRaw('COALESCE(AVG(rating),0) as avg_rating, COUNT(*) as cnt')
             ->first();
 
-        $rating = (float) ($stats->avg_rating ?? 0);
-        $reviews = (int) ($stats->cnt ?? 0);
+        $product->forceFill([
+            'rating' => $stats ? round((float) $stats->avg_rating, 1) : 0,
+            'reviews_count' => $stats ? (int) $stats->cnt : 0,
+        ])->save();
 
-        $descriptionValue = trim((string) $description);
-        $availableStock = $product->availableStock();
+        $redirectLocale = $locale ? LocaleSegment::normalize($locale) : null;
 
-        return view('pages.shop.show', [
-            'product' => [
-                'name' => method_exists($product, 'getTranslation')
-                    ? $product->getTranslation('name_translations', $baseLocale)
-                    : ($product->name ?? ''),
-                'category' => $product->category?->name ?? '-',
-                'price' => (float) $product->price,
-                'rating' => round($rating, 1),
-                'reviews' => $reviews,
-                'thumbnail' => $product->image ?? ($images[0] ?? null),
-                'image' => $images[0] ?? null,
-                'images' => $images,
-                'summary' => $product->summary ?: $product->description,
-                'description' => $descriptionValue ?: ($product->summary ?: ''),
-                'features' => $features,
-                'sku' => $product->sku,
-                'color' => $product->color,
-                'colors' => $visibleColors,
-                'weight_grams' => $product->weight_grams,
-                'stock' => $availableStock,
-                'stock_label' => $availableStock > 0 ? 'In stock' : 'Out of stock',
-            ],
-        ]);
+        return redirect()
+            ->route('product.show', [
+                'locale' => $redirectLocale,
+                'slug' => $slug,
+            ])
+            ->with('success', 'Thanks for your review!');
     }
-
 }

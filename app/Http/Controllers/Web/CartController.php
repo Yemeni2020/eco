@@ -13,6 +13,7 @@ use App\Http\Requests\UpdateCartItemRequest;
 use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CartController extends Controller
 {
@@ -23,13 +24,20 @@ class CartController extends Controller
         $totals = $quoteTotalsAction->execute($cart);
 
         $items = $cart->items->map(function ($item) {
+            $image = $item->product?->image ?? ($item->product?->gallery[0] ?? null);
+            if ($image && !str_starts_with($image, 'http://') && !str_starts_with($image, 'https://') && !str_starts_with($image, '/')) {
+                $image = Storage::disk('public')->exists("product/{$image}")
+                    ? Storage::url("product/{$image}")
+                    : Storage::url($image);
+            }
+
             return [
                 'id' => $item->id,
                 'name' => $item->product?->name ?? '-',
                 'qty' => $item->qty,
                 'price' => (float) $item->price_snapshot,
                 'total' => (float) ($item->price_snapshot * $item->qty),
-                'image' => $item->product?->image ?? ($item->product?->gallery[0] ?? null),
+                'image' => $image,
             ];
         })->values();
 

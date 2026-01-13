@@ -61,6 +61,8 @@ class ProductSeeder extends Seeder
             'description' => 'Lumina brings sculptural lighting to your desktop with multi-point illumination and color-tuned finishes.',
             'price' => 129.00,
             'compare_at_price' => 159.00,
+            'rating' => 4.8,
+            'reviews_count' => 124,
             'sku' => $sku,
             'stock' => 40,
             'reserved_stock' => 0,
@@ -75,6 +77,11 @@ class ProductSeeder extends Seeder
             'summary_translations' => ['en' => 'Minimalist LED lamp with adaptive light and wireless charging'],
             'description_translations' => ['en' => 'Lumina brings sculptural lighting to your desktop with multi-point illumination and color-tuned finishes.'],
             'features' => ['Adaptive light sensor', 'USB-C + wireless charging', 'Color-matched metal finishes'],
+            'shipping_returns' => [
+                'Ships in 1-2 business days.',
+                'Free 30-day returns on unused items.',
+                'Warranty support included.',
+            ],
             'seo_title_translations' => ['en' => 'Lumina Desk Lamp | Otex'],
             'seo_description_translations' => ['en' => 'Shop the Lumina Desk Lamp with smart light, multiple finishes, and streaming-ready features.'],
         ]);
