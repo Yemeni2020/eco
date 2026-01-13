@@ -5,6 +5,8 @@ namespace Database\Seeders;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
+use Database\Seeders\AttributeDefinitionSeeder;
+use Database\Seeders\ProductSeeder;
 use Database\Seeders\ColorSeeder;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -35,5 +37,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(ColorSeeder::class);
+        $this->call(AttributeDefinitionSeeder::class);
+        $this->call(ProductSeeder::class);
     }
 }

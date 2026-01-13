@@ -24,7 +24,18 @@ use Laravel\Fortify\Http\Controllers\VerifyEmailController;
 use Livewire\Volt\Volt;
 use Spatie\Browsershot\Browsershot;
 
-Route::pattern('locale', 'ar|en');
+$localePattern = 'ar(?:_[a-z]{2})?|en(?:_[a-z]{2})?';
+
+Route::pattern('locale', $localePattern);
+
+Route::get('/{locale?}/product/{slug}', [ProductController::class, 'show'])
+    ->where('locale', $localePattern)
+    ->middleware('setLocale')
+    ->name('product.show');
+
+Route::get('/shop/{slug}', function (string $slug) {
+    return redirect()->route('product.show', ['slug' => $slug], 301);
+});
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
@@ -53,7 +64,7 @@ Route::get('/language/{locale}', [LocaleController::class, 'switch'])->name('lan
 
 Route::group([
     'prefix' => '{locale}',
-    'where' => ['locale' => 'ar|en'],
+    'where' => ['locale' => $localePattern],
     'middleware' => ['setLocale'],
 ], function () {
     Route::get('/', [HomeController::class, 'index'])->name('home');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PaymentController;
+use App\Http\Controllers\Api\Admin\ProductController as AdminProductController;
 use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -43,4 +44,8 @@ Route::prefix('v1')->group(function () {
 
     Route::post('payments/webhook/mada', [PaymentController::class, 'madaWebhook']);
     Route::post('payments/webhook/stcpay', [PaymentController::class, 'stcPayWebhook']);
+});
+
+Route::middleware('auth:sanctum')->prefix('admin')->group(function () {
+    Route::apiResource('products', AdminProductController::class);
 });

@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Color;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Translatable\HasTranslations;
+
 
 class Product extends Model
 {
@@ -17,6 +17,7 @@ class Product extends Model
 
     protected $fillable = [
         'category_id',
+        'brand_id',
         'name',
         'slug',
         'summary',
@@ -25,7 +26,7 @@ class Product extends Model
         'price',
         'compare_at_price',
         'sku',
-        'color', 
+        'color',
         'stock',
         'reserved_stock',
         'is_active',
@@ -72,24 +73,9 @@ class Product extends Model
         'seo_keywords_translations',
     ];
 
-    public function getNameAttribute($value): ?string
+    public function brand(): BelongsTo
     {
-        return $this->getTranslation('name_translations', app()->getLocale(), $value);
-    }
-
-    public function getSlugAttribute($value): ?string
-    {
-        return $this->getTranslation('slug_translations', app()->getLocale(), $value);
-    }
-
-    public function getSummaryAttribute($value): ?string
-    {
-        return $this->getTranslation('summary_translations', app()->getLocale(), $value);
-    }
-
-    public function getDescriptionAttribute($value): ?string
-    {
-        return $this->getTranslation('description_translations', app()->getLocale(), $value);
+        return $this->belongsTo(Brand::class);
     }
 
     public function category(): BelongsTo
@@ -97,14 +83,44 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'category_product');
+    }
+
+    public function options(): HasMany
+    {
+        return $this->hasMany(ProductOption::class);
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function mediaAssets(): HasMany
+    {
+        return $this->hasMany(MediaAsset::class)->orderBy('position');
+    }
+
+    public function attributeValues(): HasMany
+    {
+        return $this->hasMany(AttributeValue::class);
+    }
+
+    public function colorOptions(): BelongsToMany
+    {
+        return $this->belongsToMany(Color::class, 'color_product');
+    }
+
     public function reviews(): HasMany
     {
         return $this->hasMany(ProductReview::class);
     }
 
-    public function colorOptions(): BelongsToMany
+    public function primaryMedia()
     {
-        return $this->belongsToMany(Color::class, 'color_product')->withTimestamps();
+        return $this->mediaAssets()->where('is_primary', true)->orderBy('position');
     }
 
     public function scopeActive($query)

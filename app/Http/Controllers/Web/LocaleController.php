@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Support\LocaleSegment;
+
 class LocaleController extends Controller
 {
     public function switch(string $locale)
     {
-        $allowed = config('app.supported_locales', ['ar', 'en']);
-        $locale = in_array($locale, $allowed, true) ? $locale : config('app.locale');
+        $normalized = LocaleSegment::normalize($locale);
+        $target = url()->previous() ?: route('home', ['locale' => $normalized]);
+        $localized = $this->rebuildPath($target, $normalized, LocaleSegment::allowedSegments());
 
-        session(['locale' => $locale]);
-
-        $target = url()->previous() ?: route('home', ['locale' => $locale]);
-        $localized = $this->rebuildPath($target, $locale, $allowed);
+        session(['locale' => $normalized]);
 
         return redirect($localized);
     }

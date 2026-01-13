@@ -85,6 +85,14 @@ return [
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
     'supported_locales' => ['ar', 'en'],
+    'locale_variants' => [
+        'ar_sa' => 'ar',
+        'en_us' => 'en',
+    ],
+    'locale_variant_labels' => [
+        'ar_sa' => 'العربية (SA)',
+        'en_us' => 'English (US)',
+    ],
 
     /*
     |--------------------------------------------------------------------------

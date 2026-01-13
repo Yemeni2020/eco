@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
+use App\Support\LocaleSegment;
 
 class SetLocale
 {
@@ -15,21 +16,20 @@ class SetLocale
     public function handle(Request $request, Closure $next)
     {
         $allowed = config('app.supported_locales', ['ar', 'en']);
-        $locale = $request->route('locale')
+        $segment = $request->route('locale')
             ?? Session::get('locale')
             ?? config('app.locale');
 
-        if (!in_array($locale, $allowed, true)) {
-            $locale = config('app.locale');
-        }
+        $normalized = LocaleSegment::normalize($segment);
+        $baseLocale = LocaleSegment::base($normalized);
 
-        app()->setLocale($locale);
-        Session::put('locale', $locale);
-        URL::defaults(['locale' => $locale]);
+        app()->setLocale($baseLocale);
+        Session::put('locale', $normalized);
+        URL::defaults(['locale' => $normalized]);
 
-        view()->share('htmlLang', $locale);
-        view()->share('htmlDir', $locale === 'ar' ? 'rtl' : 'ltr');
-        view()->share('currentLocale', $locale);
+        view()->share('htmlLang', $baseLocale);
+        view()->share('htmlDir', $baseLocale === 'ar' ? 'rtl' : 'ltr');
+        view()->share('currentLocale', $normalized);
         view()->share('availableLocales', collect($allowed)->mapWithKeys(fn ($code) => [$code => strtoupper($code)]));
 
         return $next($request);

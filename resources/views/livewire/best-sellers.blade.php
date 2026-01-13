@@ -32,7 +32,7 @@
                         wire:key="best-seller-{{ $product['id'] }}">
                         <div
                             class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                            <a href="{{ route('shop.show', $product['id']) }}" class="absolute inset-0 z-10"
+                            <a href="{{ route('product.show', ['slug' => $product['slug'] ?? $product['id']]) }}" class="absolute inset-0 z-10"
                                 aria-label="View {{ $product['name'] }}"></a>
                             <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
                                 <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"

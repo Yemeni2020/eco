@@ -948,7 +948,7 @@
                                         </button>
                                     </div>
                                     <a class="block relative overflow-hidden h-64 bg-slate-100 group"
-                                        href="/shop/{{ $product['id'] }}">
+                                        href="{{ route('product.show', ['slug' => $product['slug']]) }}">
                                         <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}"
                                             loading="lazy"
                                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
@@ -965,7 +965,7 @@
                                     </a>
                                     <div class="p-5 flex flex-col flex-1">
                                         <a class="hover:text-blue-600 transition-colors"
-                                            href="/shop/{{ $product['id'] }}">
+                                            href="{{ route('product.show', ['slug' => $product['slug']]) }}">
                                             <h3 class="text-lg font-bold text-slate-800 mb-2 line-clamp-1">
                                                 {{ $product['name'] }}</h3>
                                         </a>
@@ -1100,7 +1100,7 @@
                                 <div class="flex flex-wrap gap-3">
                                     <x-button type="button" size="lg" variant="solid"
                                         class="rounded-full px-6">Add to bag</x-button>
-                                    <a data-preview-link href="/shop/{{ $previewProduct['id'] ?? '' }}"
+                                    <a data-preview-link href="{{ route('product.show', ['slug' => $previewProduct['slug'] ?? '']) }}"
                                         class="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 px-6 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">View
                                         full details</a>
                                 </div>

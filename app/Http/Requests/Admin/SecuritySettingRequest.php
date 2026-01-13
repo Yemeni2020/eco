@@ -25,3 +25,4 @@ class SecuritySettingRequest extends FormRequest
             'social.apple.client_secret' => ['nullable', 'string', 'max:255'],
         ];
     }
+}

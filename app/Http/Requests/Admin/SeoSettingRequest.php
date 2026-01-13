@@ -24,3 +24,4 @@ class SeoSettingRequest extends FormRequest
             'json_ld' => ['nullable', 'json'],
         ];
     }
+}
