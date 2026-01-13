@@ -224,17 +224,33 @@
                             d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
                     </svg>
                 </button>
-                <div class="hidden md:flex items-center gap-2 rounded-full border border-slate-200/70 px-3 py-1">
-                    <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">{{ __('site.language_label') }}</span>
-                    <div class="flex gap-1">
-                        @foreach($availableLocales ?? [] as $code => $label)
-                            <a href="{{ route('language.switch', $code) }}"
-                                class="rounded-full px-2 text-[12px] font-semibold transition-colors {{ ($currentLocale ?? app()->getLocale()) === $code ? 'bg-slate-900 text-white' : 'text-slate-500 hover:text-slate-900' }}">
-                                {{ $label }}
+                @php
+                    $localeOptions = locale_dropdown_items();
+                    $currentLocaleVariant = current_locale_variant();
+                @endphp
+                <details class="relative hidden md:block">
+                    <summary
+                        class="inline-flex items-center gap-1 rounded-full border border-slate-300/70 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-700 shadow-sm transition hover:border-slate-400 hover:text-slate-900 cursor-pointer">
+                        {{ __('site.language_label') }}
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"
+                            class="h-3 w-3 text-slate-500 transition-transform duration-150">
+                            <path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z"
+                                clip-rule="evenodd" fill-rule="evenodd" />
+                        </svg>
+                    </summary>
+                    <div
+                        class="absolute right-0 top-11 z-40 mt-2 w-40 rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/5 px-0 py-2 text-xs text-slate-600">
+                        @foreach ($localeOptions as $option)
+                            <a href="{{ route('language.switch', $option['route_locale']) }}"
+                                class="block px-4 py-2 text-[12px] font-semibold transition {{ $option['is_current'] ? 'text-slate-900 bg-slate-100' : 'hover:bg-slate-50 hover:text-slate-900' }}">
+                                <span>{{ $option['label'] }}</span>
+                                @if ($option['is_current'])
+                                    <span class="float-right text-[10px] text-emerald-600">✔</span>
+                                @endif
                             </a>
                         @endforeach
                     </div>
-                </div>
+                </details>
                 <!-- Desktop Cart -->
                 <button id="cartButton" type="button"
                     class="hidden md:inline-flex items-center justify-center text-sm font-medium h-10 w-10 relative bg-slate-900/90 hover:bg-blue-600 text-white rounded-full transition-all duration-300 shadow-lg hover:shadow-blue-500/30 backdrop-blur-sm">

@@ -35,42 +35,6 @@
     @include('partials.top-bar')
     
     <x-navbar />
-    @php
-        $localeVariantLabels = config('app.locale_variant_labels', [
-            'ar_sa' => 'العربية',
-            'en_us' => 'English',
-        ]);
-        $currentLocaleVariant = $currentLocale ?? session('locale') ?? app()->getLocale() ?? config('app.locale');
-    @endphp
-    <div x-data="{ open: false }"
-        class="fixed right-4 top-[72px] z-50 hidden md:flex items-center gap-2 rounded-full border border-slate-200/80 bg-white/80 px-3 py-2 shadow-lg backdrop-blur"
-        @click.away="open = false">
-        <span class="text-[10px] uppercase tracking-[0.4em] text-slate-400">اللغة</span>
-        <button type="button"
-            @click="open = !open"
-            :aria-expanded="open.toString()"
-            class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-xs font-semibold uppercase tracking-[0.3em]">
-            {{ $localeVariantLabels[$currentLocaleVariant] ?? __('site.language_label') }}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                class="h-3 w-3 transition-transform duration-200" :class="{ 'rotate-180': open }">
-                <path fill="currentColor" d="M12 15.172 6.343 9.515l1.414-1.414L12 12.343l4.243-4.242 1.414 1.414z" />
-            </svg>
-        </button>
-        <div x-show="open"
-            x-transition
-            class="absolute right-0 top-12 w-40 rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/5 p-2 text-sm text-slate-700"
-            style="display: none;">
-            @foreach ($localeVariantLabels as $segment => $label)
-                <a href="{{ route('language.switch', $segment) }}"
-                    class="flex items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold transition {{ $currentLocaleVariant === $segment ? 'bg-slate-900 text-white shadow-lg' : 'hover:bg-slate-50' }}">
-                    <span>{{ $label }}</span>
-                    @if ($currentLocaleVariant === $segment)
-                        <span class="text-[10px] text-emerald-400">✔</span>
-                    @endif
-                </a>
-            @endforeach
-        </div>
-    </div>
     <main class="bg-white expansion-alids-init" style="padding-top: var(--header-stack-height, 0px);">
         @yield('content')
         {{ $slot ?? '' }}
