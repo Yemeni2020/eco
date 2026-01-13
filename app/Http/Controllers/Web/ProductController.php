@@ -6,7 +6,6 @@ use App\Domain\Catalog\Actions\ListCategoriesAction;
 use App\Domain\Catalog\Actions\ListProductsAction;
 use App\Domain\Catalog\Actions\ShowProductAction;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Support\LocaleSegment;
@@ -49,10 +48,13 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(string $locale = null, string $slug, ShowProductAction $showProductAction)
+    public function show(string $locale, string $slug, ShowProductAction $showProductAction)
     {
-        $requestedLocale = session('locale') ?? LocaleSegment::normalize($locale);
+        $requestedLocale = LocaleSegment::normalize($locale);
         $baseLocale = LocaleSegment::base($requestedLocale);
+
+        app()->setLocale($requestedLocale);
+        session(['locale' => $requestedLocale]);
 
         // Your action already matches current locale slug OR other locale slug OR id
         $product = $showProductAction->execute($slug);
@@ -60,7 +62,7 @@ class ProductController extends Controller
         // If slug belongs to the OTHER locale, redirect to correct locale URL
         $otherBase = $baseLocale === 'ar' ? 'en' : 'ar';
         $slugCurrent = data_get($product->slug_translations ?? [], $baseLocale);
-        $slugOther   = data_get($product->slug_translations ?? [], $otherBase);
+        $slugOther = data_get($product->slug_translations ?? [], $otherBase);
 
         if ($slugOther === $slug && $slugCurrent && $slugCurrent !== $slug) {
             return redirect()->route('product.show', [
@@ -69,14 +71,21 @@ class ProductController extends Controller
             ], 302);
         }
 
-        $product->load('colorOptions');
-
         $description = method_exists($product, 'getTranslation')
             ? $product->getTranslation('description_translations', $baseLocale)
             : ($product->description ?? '');
+        $description = trim((string) $description);
+
+        $summary = method_exists($product, 'getTranslation')
+            ? $product->getTranslation('summary_translations', $baseLocale)
+            : ($product->summary ?? '');
+        $summary = trim((string) $summary);
+        if ($summary === '') {
+            $summary = $description;
+        }
 
         $features = is_array($product->features) && count($product->features)
-            ? $product->features
+            ? array_values(array_filter(array_map('trim', $product->features)))
             : collect(preg_split('/\r\n|\r|\n/', (string) $description))
                 ->map(fn ($line) => trim((string) $line))
                 ->filter()
@@ -84,47 +93,26 @@ class ProductController extends Controller
                 ->values()
                 ->all();
 
-        $images = [];
-        if (is_array($product->images) && count($product->images)) {
-            $images = $product->images;
-        }
-        if (count($images) === 0) {
-            $images = array_values(array_filter(array_merge(
-                [$product->image],
-                is_array($product->gallery) ? $product->gallery : []
-            )));
-        }
-        $images = array_values(array_filter(array_map([$this, 'resolveMediaUrl'], $images)));
-
-        $visibleColors = $product->colorOptions->map(function ($color) use ($baseLocale) {
-            return [
-                'id' => $color->id,
-                'name' => method_exists($color, 'getTranslation')
-                    ? $color->getTranslation('name_translations', $baseLocale)
-                    : ($color->name ?? ''),
-                'slug' => method_exists($color, 'getTranslation')
-                    ? $color->getTranslation('slug_translations', $baseLocale)
-                    : ($color->slug ?? ''),
-                'hex' => $color->hex,
-            ];
-        })->values()->all();
-
-        $rating = $product->rating;
-        $reviews = $product->reviews_count;
-
-        if ($rating === null || $reviews === null) {
-            $stats = $product->reviews()
-                ->selectRaw('COALESCE(AVG(rating),0) as avg_rating, COUNT(*) as cnt')
-                ->first();
-
-            $rating = (float) ($stats->avg_rating ?? 0);
-            $reviews = (int) ($stats->cnt ?? 0);
+        $imageCandidates = [];
+        if (!empty($product->image)) {
+            $imageCandidates[] = $product->image;
         } else {
-            $rating = (float) $rating;
-            $reviews = (int) $reviews;
+            if (is_array($product->images) && count($product->images)) {
+                $imageCandidates = array_merge($imageCandidates, $product->images);
+            }
+            if (is_array($product->gallery) && count($product->gallery)) {
+                $imageCandidates = array_merge($imageCandidates, $product->gallery);
+            }
         }
+        $imageCandidates = array_values(array_filter($imageCandidates));
+        $image = $this->resolveMediaUrl($imageCandidates[0] ?? null);
 
-        $descriptionValue = trim((string) $description);
+        $stats = $product->reviews()
+            ->selectRaw('COALESCE(AVG(rating),0) as avg_rating, COUNT(*) as cnt')
+            ->first();
+        $rating = round((float) ($stats->avg_rating ?? 0), 1);
+        $reviews = (int) ($stats->cnt ?? 0);
+
         $availableStock = $product->availableStock();
         $recentReviews = $product->reviews()
             ->latest()
@@ -140,21 +128,25 @@ class ProductController extends Controller
             ? $product->shipping_returns
             : $defaultShipping;
 
-        $product->setAttribute('rating', round($rating, 1));
-        $product->setAttribute('reviews_count', $reviews);
-        $product->setAttribute('summary', $product->summary ?: $product->description);
-        $product->setAttribute('description', $descriptionValue ?: ($product->summary ?: ''));
-        $product->setAttribute('features', $features);
-        $product->setAttribute('shipping_returns', $shippingReturns);
-        $product->setAttribute('image', $images[0] ?? $this->resolveMediaUrl($product->image));
-        $product->setAttribute('stock_label', $availableStock > 0 ? 'In stock' : 'Out of stock');
-        $product->setAttribute('stock', $availableStock);
-        $product->setAttribute('colors', $visibleColors);
-        $product->setAttribute('category_name', $product->category?->name ?? '-');
-        $product->setAttribute('localized_slug', $slugCurrent ?? $product->slug);
+        $viewProduct = [
+            'id' => $product->id,
+            'slug' => $slugCurrent ?? $product->slug,
+            'name' => $product->name ?? '',
+            'category' => $product->category?->name ?? '-',
+            'price' => (float) $product->price,
+            'rating' => $rating,
+            'reviews' => $reviews,
+            'image' => $image,
+            'summary' => $summary,
+            'features' => $features,
+            'description' => $description,
+            'stock' => $availableStock,
+            'stock_label' => $availableStock > 0 ? 'In stock' : 'Out of stock',
+            'shipping_returns' => $shippingReturns,
+        ];
 
         return view('pages.shop.show', [
-            'productModel' => $product,
+            'product' => $viewProduct,
             'recentReviews' => $recentReviews,
         ]);
     }
@@ -173,7 +165,7 @@ class ProductController extends Controller
         return Storage::url($path);
     }
 
-    public function storeReview(Request $request, ?string $locale, string $slug, ShowProductAction $showProductAction)
+    public function storeReview(Request $request, string $locale, string $slug, ShowProductAction $showProductAction)
     {
         $request->validate([
             'reviewer_name' => ['required', 'string', 'max:120'],
@@ -187,6 +179,7 @@ class ProductController extends Controller
             'reviewer_name' => $request->input('reviewer_name'),
             'rating' => (int) $request->input('rating'),
             'body' => $request->input('body'),
+            'comment' => $request->input('body'),
         ]);
 
         $stats = $product->reviews()

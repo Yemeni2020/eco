@@ -7,8 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Translatable\HasTranslations;
-
 
 class Product extends Model
 {
@@ -34,6 +34,7 @@ class Product extends Model
         'reserved_stock',
         'is_active',
         'weight_grams',
+        'status',
         'image',
         'thumbnail',
         'gallery',
@@ -131,11 +132,47 @@ class Product extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('is_active', true);
+        if (Schema::hasColumn($this->getTable(), 'status')) {
+            return $query->where('status', 'ACTIVE');
+        }
+
+        if (Schema::hasColumn($this->getTable(), 'is_active')) {
+            return $query->where('is_active', true);
+        }
+
+        return $query;
     }
 
     public function availableStock(): int
     {
         return max(0, (int) $this->stock - (int) $this->reserved_stock);
+    }
+
+    public function getNameAttribute($value): ?string
+    {
+        $translation = $this->getTranslation('name_translations', app()->getLocale(), false);
+
+        return $translation ?? $value;
+    }
+
+    public function getSlugAttribute($value): ?string
+    {
+        $translation = $this->getTranslation('slug_translations', app()->getLocale(), false);
+
+        return $translation ?? $value;
+    }
+
+    public function getSummaryAttribute($value): ?string
+    {
+        $translation = $this->getTranslation('summary_translations', app()->getLocale(), false);
+
+        return $translation ?? $value;
+    }
+
+    public function getDescriptionAttribute($value): ?string
+    {
+        $translation = $this->getTranslation('description_translations', app()->getLocale(), false);
+
+        return $translation ?? $value;
     }
 }

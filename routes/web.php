@@ -28,18 +28,26 @@ $localePattern = 'ar(?:_[a-z]{2})?|en(?:_[a-z]{2})?';
 
 Route::pattern('locale', $localePattern);
 
-Route::get('/{locale?}/product/{slug}', [ProductController::class, 'show'])
+Route::get('/product/{slug}', function (string $slug) {
+    $locale = session('locale') ?? app()->getLocale();
+
+    return redirect()->route('product.show', ['locale' => $locale, 'slug' => $slug], 302);
+});
+
+Route::get('/{locale}/product/{slug}', [ProductController::class, 'show'])
     ->where('locale', $localePattern)
     ->middleware('setLocale')
     ->name('product.show');
 
-Route::post('/{locale?}/product/{slug}/reviews', [ProductController::class, 'storeReview'])
+Route::post('/{locale}/product/{slug}/reviews', [ProductController::class, 'storeReview'])
     ->where('locale', $localePattern)
     ->middleware('setLocale')
     ->name('product.reviews.store');
 
 Route::get('/shop/{slug}', function (string $slug) {
-    return redirect()->route('product.show', ['slug' => $slug], 301);
+    $locale = session('locale') ?? app()->getLocale();
+
+    return redirect()->route('product.show', ['locale' => $locale, 'slug' => $slug], 301);
 });
 
 Route::middleware('guest')->group(function () {

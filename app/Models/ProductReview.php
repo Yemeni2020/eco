@@ -15,6 +15,7 @@ class ProductReview extends Model
         'reviewer_name',
         'rating',
         'body',
+        'comment',
     ];
 
     protected $casts = [
@@ -24,5 +25,10 @@ class ProductReview extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getBodyAttribute($value): ?string
+    {
+        return $value ?? $this->comment;
     }
 }

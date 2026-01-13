@@ -8,6 +8,7 @@ use App\Models\User;
 use Database\Seeders\AttributeDefinitionSeeder;
 use Database\Seeders\ProductSeeder;
 use Database\Seeders\ColorSeeder;
+use Database\Seeders\DemoCatalogSeeder;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -39,5 +40,9 @@ class DatabaseSeeder extends Seeder
         $this->call(ColorSeeder::class);
         $this->call(AttributeDefinitionSeeder::class);
         $this->call(ProductSeeder::class);
+
+        if (app()->environment(['local', 'development'])) {
+            $this->call(DemoCatalogSeeder::class);
+        }
     }
 }

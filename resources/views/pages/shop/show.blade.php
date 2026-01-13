@@ -1,27 +1,7 @@
 <x-layouts.app>
     @php
-        $product = $productModel->only($productModel->getFillable());
-        $product['category'] = $productModel->category_name ?? ($productModel->category?->name ?? '-');
-        $product['rating'] = $productModel->rating ?? 0;
-        $product['reviews'] = $productModel->reviews_count ?? 0;
-        $product['summary'] = $product['summary'] ?? '';
-        $product['description'] = $product['description'] ?? $product['summary'] ?? '';
-        $product['features'] = is_array($productModel->features) ? $productModel->features : [];
-        $product['image'] = $productModel->image ?? null;
-        $product['stock_label'] = $productModel->stock_label ?? 'In stock';
-        $product['shipping_returns'] = is_array($productModel->shipping_returns) ? $productModel->shipping_returns : [];
         $isTopRated = ($product['rating'] >= 4.5) && ($product['reviews'] >= 10);
-        $stockClass = ($productModel->stock ?? 0) > 0 ? 'text-green-600' : 'text-rose-500';
-        $imagePath = $product['image'] ?? '';
-        if ($imagePath && !str_starts_with($imagePath, 'http://') && !str_starts_with($imagePath, 'https://') && !str_starts_with($imagePath, '/')) {
-            if (str_starts_with($imagePath, 'product/')) {
-                $imagePath = '/storage/' . ltrim($imagePath, '/');
-            } elseif (\Illuminate\Support\Facades\Storage::disk('public')->exists("product/{$imagePath}")) {
-                $imagePath = '/storage/product/' . ltrim($imagePath, '/');
-            } else {
-                $imagePath = '/storage/' . ltrim($imagePath, '/');
-            }
-        }
+        $stockClass = ($product['stock'] ?? 0) > 0 ? 'text-green-600' : 'text-rose-500';
     @endphp
 
     <main class="bg-slate-50 min-h-screen">
@@ -36,8 +16,14 @@
         <section class="container mx-auto px-4 py-12 space-y-12">
             <div class="grid lg:grid-cols-2 gap-10">
                 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100 relative">
-                    <img src="{{ $imagePath }}" alt="{{ $product['name'] }}"
-                        class="w-full h-full object-cover max-h-[520px]">
+                    @if (!empty($product['image']))
+                        <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}"
+                            class="w-full h-full object-cover max-h-[520px]">
+                    @else
+                        <div class="flex items-center justify-center h-full min-h-[320px] bg-slate-100 text-slate-400 text-sm">
+                            No image available
+                        </div>
+                    @endif
                     @if ($isTopRated)
                         <div
                             class="absolute top-4 left-4 bg-blue-600/90 text-white px-3 py-1 rounded-full text-xs font-semibold shadow">
@@ -85,7 +71,7 @@
                     <form method="POST" action="{{ route('cart.items.store', ['locale' => app()->getLocale()]) }}"
                         class="flex items-center justify-between bg-white border border-slate-100 rounded-xl p-5 shadow-sm">
                         @csrf
-                        <input type="hidden" name="product_id" value="{{ $productModel->id }}">
+                        <input type="hidden" name="product_id" value="{{ $product['id'] }}">
                         <input type="hidden" name="qty" value="1">
                         <div>
                             <p class="text-slate-500 text-sm">Price</p>
@@ -99,7 +85,7 @@
                             <x-button type="button" variant="outline" size="sm"
                                 class="rounded-full text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-50">Save</x-button>
                             <x-button type="submit" size="lg" variant="solid" class="rounded-full px-5"
-                                :disabled="($productModel->stock ?? 0) <= 0">
+                                :disabled="($product['stock'] ?? 0) <= 0">
                                 Add to Cart
                             </x-button>
                         </div>
@@ -249,7 +235,7 @@
                         </svg>
                     </button>
                 </div>
-                <form method="POST" action="{{ route('product.reviews.store', ['locale' => app()->getLocale(), 'slug' => $productModel->localized_slug ?? $productModel->slug]) }}" class="space-y-4">
+                <form method="POST" action="{{ route('product.reviews.store', ['locale' => app()->getLocale(), 'slug' => $product['slug']]) }}" class="space-y-4">
                     @csrf
                     <div>
                         <label class="block text-sm font-semibold text-slate-700">Name</label>
