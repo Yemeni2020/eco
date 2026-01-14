@@ -16,6 +16,7 @@ class ProductVariant extends Model
         'gtin',
         'mpn',
         'has_sensor',
+        'is_active',
         'currency',
         'price_cents',
         'compare_at_cents',
@@ -35,6 +36,7 @@ class ProductVariant extends Model
 
     protected $casts = [
         'has_sensor' => 'boolean',
+        'is_active' => 'boolean',
         'price_cents' => 'integer',
         'compare_at_cents' => 'integer',
         'cost_cents' => 'integer',
@@ -112,6 +114,10 @@ class ProductVariant extends Model
 
     public function getAvailableQuantityAttribute(): int
     {
+        if (!$this->track_inventory) {
+            return 999999;
+        }
+
         return $this->inventoryLevels->sum(function (InventoryLevel $level) {
             return max(0, $level->on_hand - $level->reserved);
         });

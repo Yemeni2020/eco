@@ -58,6 +58,12 @@ class ProductController extends Controller
 
         // Your action already matches current locale slug OR other locale slug OR id
         $product = $showProductAction->execute($slug);
+        $product->loadMissing([
+            'options.values',
+            'variants.optionValues.option',
+            'variants.inventoryLevels.location',
+            'mediaAssets',
+        ]);
 
         // If slug belongs to the OTHER locale, redirect to correct locale URL
         $otherBase = $baseLocale === 'ar' ? 'en' : 'ar';
@@ -148,6 +154,35 @@ class ProductController extends Controller
         return view('pages.shop.show', [
             'product' => $viewProduct,
             'recentReviews' => $recentReviews,
+            'options' => $this->serializeOptions($product),
+            'variants' => $this->serializeVariants($product),
+            'media' => $this->serializeMedia($product),
+        ]);
+    }
+
+    public function showAdvanced(string $locale, string $slug, ShowProductAction $showProductAction)
+    {
+        $requestedLocale = LocaleSegment::normalize($locale);
+        $baseLocale = LocaleSegment::base($requestedLocale);
+
+        app()->setLocale($requestedLocale);
+        session(['locale' => $requestedLocale]);
+
+        $product = $showProductAction->execute($slug);
+        $otherBase = $baseLocale === 'ar' ? 'en' : 'ar';
+        $slugCurrent = data_get($product->slug_translations ?? [], $baseLocale);
+        $slugOther = data_get($product->slug_translations ?? [], $otherBase);
+
+        if ($slugOther === $slug && $slugCurrent && $slugCurrent !== $slug) {
+            return redirect()->route('product.show.advanced', [
+                'locale' => $otherBase,
+                'slug' => $slugOther,
+            ], 302);
+        }
+
+        return view('pages.shop.show-advanced', [
+            'locale' => $requestedLocale,
+            'slug' => $slugCurrent ?? $product->slug,
         ]);
     }
 
@@ -163,6 +198,75 @@ class ProductController extends Controller
             return Storage::url("product/{$path}");
         }
         return Storage::url($path);
+    }
+
+    private function serializeOptions($product): array
+    {
+        $locale = app()->getLocale();
+
+        return $product->options
+            ->sortBy('position')
+            ->map(function ($option) use ($locale) {
+                return [
+                    'id' => $option->id,
+                    'code' => $option->code,
+                    'name' => $option->label($locale),
+                    'name_translations' => $option->name_translations,
+                    'position' => $option->position,
+                    'values' => $option->values->sortBy('position')->map(function ($value) use ($locale) {
+                        return [
+                            'id' => $value->id,
+                            'value' => $value->value,
+                            'label' => $value->label($locale),
+                            'label_translations' => $value->label_translations,
+                            'swatch_hex' => $value->swatch_hex,
+                            'position' => $value->position,
+                            'product_option_id' => $value->product_option_id,
+                        ];
+                    })->values(),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function serializeVariants($product): array
+    {
+        return $product->variants->map(function ($variant) {
+            return [
+                'id' => $variant->id,
+                'sku' => $variant->sku,
+                'gtin' => $variant->gtin,
+                'mpn' => $variant->mpn,
+                'currency' => $variant->currency,
+                'price_cents' => $variant->price_cents,
+                'compare_at_cents' => $variant->compare_at_cents,
+                'effective_price_cents' => $variant->effective_price_cents,
+                'available_quantity' => $variant->available_quantity,
+                'is_active' => $variant->is_active ?? true,
+                'option_value_ids' => $variant->optionValues->pluck('id')->all(),
+            ];
+        })->values()->all();
+    }
+
+    private function serializeMedia($product): array
+    {
+        return $product->mediaAssets
+            ->sortBy('position')
+            ->map(function ($asset) {
+                return [
+                    'id' => $asset->id,
+                    'url' => $asset->url,
+                    'type' => $asset->type,
+                    'alt_text' => $asset->alt_text,
+                    'position' => $asset->position,
+                    'is_primary' => $asset->is_primary,
+                    'option_value_id' => $asset->option_value_id,
+                    'variant_id' => $asset->variant_id,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function storeReview(Request $request, string $locale, string $slug, ShowProductAction $showProductAction)

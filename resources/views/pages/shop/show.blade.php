@@ -82,6 +82,10 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
+                            <a href="{{ route('product.show.advanced', ['locale' => app()->getLocale(), 'slug' => $product['slug']]) }}"
+                                class="text-sm font-semibold text-slate-500 hover:text-slate-700">
+                                Advanced view
+                            </a>
                             <x-button type="button" variant="outline" size="sm"
                                 class="rounded-full text-blue-600 bg-blue-50 hover:bg-blue-100 border-blue-50">Save</x-button>
                             <x-button type="submit" size="lg" variant="solid" class="rounded-full px-5"

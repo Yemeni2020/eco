@@ -69,6 +69,7 @@ class ProductResource extends JsonResource
                         'gtin' => $variant->gtin,
                         'mpn' => $variant->mpn,
                         'has_sensor' => $variant->has_sensor,
+                        'is_active' => $variant->is_active,
                         'currency' => $variant->currency,
                         'price_cents' => $variant->price_cents,
                         'compare_at_cents' => $variant->compare_at_cents,
@@ -86,6 +87,7 @@ class ProductResource extends JsonResource
                         'metadata' => $variant->metadata,
                         'computed_title' => $variant->computed_title,
                         'effective_price_cents' => $variant->effective_price_cents,
+                        'available_quantity' => $variant->available_quantity,
                         'option_values' => $variant->optionValues->map(function ($optionValue) {
                             return [
                                 'id' => $optionValue->id,

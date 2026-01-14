@@ -68,16 +68,20 @@ class ProductController extends Controller
             $translationPayload = $this->prepareTranslationPayload($payload, $locales, $defaultLocale);
 
             $data = Arr::except($payload, ['options', 'variants', 'media', 'attributes', 'category_ids']);
+            $sku = $payload['sku'] ?? data_get($payload, 'variants.0.sku');
             $productData = array_merge($data, $translationPayload, [
                 'category_id' => $this->resolvePrimaryCategory($payload),
                 'is_active' => isset($payload['is_active']) ? (bool) $payload['is_active'] : true,
+                'sku' => $sku,
+                'stock' => $payload['stock'] ?? 0,
+                'reserved_stock' => $payload['reserved_stock'] ?? 0,
             ]);
 
             $product = Product::create($productData);
             $this->syncCategories($product, $payload['category_ids'] ?? []);
             $optionLookup = $this->syncOptions($product, $payload['options'] ?? []);
             $variants = $this->syncVariants($product, $payload['variants'] ?? [], $optionLookup);
-            $this->syncMedia($product, $payload['media'] ?? [], $variants);
+            $this->syncMedia($product, $payload['media'] ?? [], $variants, $optionLookup);
             $this->syncAttributes($product, $payload['attributes'] ?? [], $variants);
             $this->updateBackfilledFields($product, $variants);
 
@@ -105,16 +109,20 @@ class ProductController extends Controller
             $translationPayload = $this->prepareTranslationPayload($payload, $locales, $defaultLocale, $product);
 
             $data = Arr::except($payload, ['options', 'variants', 'media', 'attributes', 'category_ids']);
+            $sku = $payload['sku'] ?? data_get($payload, 'variants.0.sku');
             $productData = array_merge($data, $translationPayload, [
                 'category_id' => $this->resolvePrimaryCategory($payload, $product),
                 'is_active' => isset($payload['is_active']) ? (bool) $payload['is_active'] : $product->is_active,
+                'sku' => $sku ?? $product->sku,
+                'stock' => $payload['stock'] ?? $product->stock ?? 0,
+                'reserved_stock' => $payload['reserved_stock'] ?? $product->reserved_stock ?? 0,
             ]);
 
             $product->update($productData);
             $this->syncCategories($product, $payload['category_ids'] ?? []);
             $optionLookup = $this->syncOptions($product, $payload['options'] ?? []);
             $variants = $this->syncVariants($product, $payload['variants'] ?? [], $optionLookup);
-            $this->syncMedia($product, $payload['media'] ?? [], $variants);
+            $this->syncMedia($product, $payload['media'] ?? [], $variants, $optionLookup);
             $this->syncAttributes($product, $payload['attributes'] ?? [], $variants);
             $this->updateBackfilledFields($product, $variants);
 
@@ -322,7 +330,8 @@ class ProductController extends Controller
                 'sku' => $variantPayload['sku'] ?? $variant->sku,
                 'gtin' => array_key_exists('gtin', $variantPayload) ? $variantPayload['gtin'] : $variant->gtin,
                 'mpn' => array_key_exists('mpn', $variantPayload) ? $variantPayload['mpn'] : $variant->mpn,
-                'has_sensor' => array_key_exists('has_sensor', $variantPayload) ? (bool) $variantPayload['has_sensor'] : $variant->has_sensor,
+                'has_sensor' => array_key_exists('has_sensor', $variantPayload) ? (bool) $variantPayload['has_sensor'] : ($variant->has_sensor ?? false),
+                'is_active' => array_key_exists('is_active', $variantPayload) ? (bool) $variantPayload['is_active'] : ($variant->is_active ?? true),
                 'currency' => array_key_exists('currency', $variantPayload) ? $variantPayload['currency'] : $variant->currency,
                 'price_cents' => array_key_exists('price_cents', $variantPayload) ? $variantPayload['price_cents'] : $variant->price_cents,
                 'compare_at_cents' => array_key_exists('compare_at_cents', $variantPayload) ? $variantPayload['compare_at_cents'] : $variant->compare_at_cents,
@@ -334,9 +343,9 @@ class ProductController extends Controller
                 'length_mm' => array_key_exists('length_mm', $variantPayload) ? $variantPayload['length_mm'] : $variant->length_mm,
                 'width_mm' => array_key_exists('width_mm', $variantPayload) ? $variantPayload['width_mm'] : $variant->width_mm,
                 'height_mm' => array_key_exists('height_mm', $variantPayload) ? $variantPayload['height_mm'] : $variant->height_mm,
-                'track_inventory' => array_key_exists('track_inventory', $variantPayload) ? (bool) $variantPayload['track_inventory'] : $variant->track_inventory,
-                'allow_backorder' => array_key_exists('allow_backorder', $variantPayload) ? (bool) $variantPayload['allow_backorder'] : $variant->allow_backorder,
-                'low_stock_threshold' => array_key_exists('low_stock_threshold', $variantPayload) ? $variantPayload['low_stock_threshold'] : $variant->low_stock_threshold,
+                'track_inventory' => array_key_exists('track_inventory', $variantPayload) ? (bool) $variantPayload['track_inventory'] : ($variant->track_inventory ?? true),
+                'allow_backorder' => array_key_exists('allow_backorder', $variantPayload) ? (bool) $variantPayload['allow_backorder'] : ($variant->allow_backorder ?? false),
+                'low_stock_threshold' => array_key_exists('low_stock_threshold', $variantPayload) ? $variantPayload['low_stock_threshold'] : ($variant->low_stock_threshold ?? 0),
                 'metadata' => array_key_exists('metadata', $variantPayload) ? $variantPayload['metadata'] : $variant->metadata,
             ]);
 
@@ -417,7 +426,7 @@ class ProductController extends Controller
         $variant->inventoryLevels()->whereNotIn('id', $processed)->delete();
     }
 
-    private function syncMedia(Product $product, array $assets, \Illuminate\Support\Collection $variants): void
+    private function syncMedia(Product $product, array $assets, \Illuminate\Support\Collection $variants, array $optionLookup): void
     {
         if (empty($assets)) {
             return;
@@ -428,13 +437,21 @@ class ProductController extends Controller
 
         foreach ($assets as $index => $asset) {
             $variant = isset($asset['variant_sku']) ? $variantMap->get($asset['variant_sku']) : null;
+            $optionValueId = $asset['option_value_id'] ?? null;
+
+            if (!$optionValueId && !empty($asset['option_code']) && !empty($asset['value'])) {
+                $lookup = $optionLookup[$asset['option_code']]['values'] ?? [];
+                if (isset($lookup[$asset['value']])) {
+                    $optionValueId = $lookup[$asset['value']]->id;
+                }
+            }
 
             MediaAsset::create([
                 'product_id' => $product->id,
                 'variant_id' => $variant?->id,
-                'option_value_id' => $asset['option_value_id'] ?? null,
+                'option_value_id' => $optionValueId,
                 'url' => $asset['url'],
-                'type' => $asset['type'] ?? 'image',
+                'type' => strtolower($asset['type'] ?? 'image'),
                 'alt_text' => $asset['alt_text'] ?? null,
                 'position' => $asset['position'] ?? $index,
                 'is_primary' => !empty($asset['is_primary']),

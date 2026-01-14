@@ -15,7 +15,7 @@
     </script>
 </head>
 
-<body dir="{{ $htmlDir ?? 'ltr' }}" class="bg-gray-100 text-gray-900 min-h-screen expansion-alids-init {{ ($htmlDir ?? 'ltr') === 'rtl' ? 'not-italic' : '' }}">
+<body dir="{{ $htmlDir ?? 'ltr' }}" class="bg-gray-100 text-gray-900 min-h-screen {{ ($htmlDir ?? 'ltr') === 'rtl' ? 'not-italic' : '' }}">
     <div id="pageLoader" class="fixed inset-0 z-[9999] flex min-h-screen items-center justify-center bg-[#f5f9ff]">
         <div class="flex flex-col items-center gap-6">
             <div class="relative h-16 w-16">
@@ -31,7 +31,7 @@
     @include('partials.top-bar')
     
     <x-navbar />
-    <main class="bg-white expansion-alids-init" style="padding-top: var(--header-stack-height, 0px);">
+    <main class="bg-white" style="padding-top: var(--header-stack-height, 0px);">
         @yield('content')
         {{ $slot ?? '' }}
     </main>

@@ -3,14 +3,17 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <div class="flex min-h-screen">
-            <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="min-h-screen w-full bg-white dark:bg-zinc-800">
+        <div class="min-h-screen flex flex-col">
+            @include('partials.admin-topbar')
+
+            <div class="flex flex-1 min-h-0">
+            <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 top-16 max-h-[calc(100dvh-4rem)]">
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-                <a href="{{ route('admin') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+                {{-- <a href="{{ route('admin') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                     <x-app-logo />
-                </a>
+                </a> --}}
 
                 <flux:navlist variant="outline">
                     <flux:navlist.group :heading="__('Platform')" class="grid">
@@ -88,57 +91,48 @@
                 </flux:dropdown>
             </flux:sidebar>
 
-            <div class="flex-1 flex flex-col min-h-screen">
-                <flux:header class="lg:hidden">
-                    <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
-
-                    <flux:spacer />
-
-                    <flux:dropdown position="top" align="end">
-                        <flux:profile
-                            :initials="auth()->user()->initials()"
-                            icon-trailing="chevron-down"
-                        />
-
-                        <flux:menu>
-                            <flux:menu.radio.group>
-                                <div class="p-0 text-sm font-normal">
-                                    <div class="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                                        <span class="relative flex h-8 w-8 shrink-0 overflow-hidden rounded-lg">
-                                            <span class="flex h-full w-full items-center justify-center rounded-lg bg-neutral-200 text-black dark:bg-neutral-700 dark:text-white">
-                                                {{ auth()->user()->initials() }}
-                                            </span>
-                                        </span>
-
-                                        <div class="grid flex-1 text-start text-sm leading-tight">
-                                            <span class="truncate font-semibold">{{ auth()->user()->name }}</span>
-                                            <span class="truncate text-xs">{{ auth()->user()->email }}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </flux:menu.radio.group>
-
-                            <flux:menu.separator />
-
-                            <flux:menu.radio.group>
-                                <flux:menu.item :href="route('admin.setting.profile')" icon="cog" wire:navigate>{{ __('Settings') }}</flux:menu.item>
-                            </flux:menu.radio.group>
-
-                            <flux:menu.separator />
-
-                            <form method="POST" action="{{ route('logout') }}" class="w-full">
-                                @csrf
-                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full" data-test="logout-button">
-                                    {{ __('Log Out') }}
-                                </flux:menu.item>
-                            </form>
-                        </flux:menu>
-                    </flux:dropdown>
-                </flux:header>
-
+            <div class="flex-1 flex flex-col min-h-0">
                 {{ $slot }}
             </div>
         </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const root = document.documentElement;
+                const toggle = document.getElementById('adminThemeToggle');
+                const iconSun = document.getElementById('adminThemeIconSun');
+                const iconMoon = document.getElementById('adminThemeIconMoon');
+
+                const applyTheme = (theme) => {
+                    root.dataset.theme = theme;
+                    if (theme === 'dark') {
+                        root.classList.add('dark');
+                        if (iconSun && iconMoon) {
+                            iconSun.classList.add('hidden');
+                            iconMoon.classList.remove('hidden');
+                        }
+                    } else {
+                        root.classList.remove('dark');
+                        if (iconSun && iconMoon) {
+                            iconSun.classList.remove('hidden');
+                            iconMoon.classList.add('hidden');
+                        }
+                    }
+                };
+
+                const storedTheme = localStorage.getItem('theme');
+                applyTheme(storedTheme || 'light');
+
+                if (toggle) {
+                    toggle.addEventListener('click', () => {
+                        const next = root.classList.contains('dark') ? 'light' : 'dark';
+                        localStorage.setItem('theme', next);
+                        applyTheme(next);
+                    });
+                }
+            });
+        </script>
 
         @fluxScripts
         @stack('scripts')

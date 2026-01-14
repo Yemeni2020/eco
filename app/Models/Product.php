@@ -110,6 +110,11 @@ class Product extends Model
         return $this->hasMany(MediaAsset::class)->orderBy('position');
     }
 
+    public function media(): HasMany
+    {
+        return $this->mediaAssets();
+    }
+
     public function attributeValues(): HasMany
     {
         return $this->hasMany(AttributeValue::class);

@@ -11,6 +11,8 @@ use App\Http\Controllers\Web\LocaleController;
 use App\Http\Controllers\Web\OrderController;
 use App\Http\Controllers\Web\PaymentReturnController;
 use App\Http\Controllers\Web\ProductController;
+use App\Livewire\Admin\ProductForm as AdminProductForm;
+use App\Livewire\Admin\ProductIndex as AdminProductIndex;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Http\Controllers\EmailVerificationNotificationController;
@@ -28,6 +30,14 @@ $localePattern = 'ar(?:_[a-z]{2})?|en(?:_[a-z]{2})?';
 
 Route::pattern('locale', $localePattern);
 
+Route::get('/{locale}/admin/{path?}', function (string $locale, ?string $path = null) {
+    $target = '/admin' . ($path ? '/' . ltrim($path, '/') : '');
+
+    return redirect($target);
+})
+    ->where('locale', $localePattern)
+    ->where('path', '.*');
+
 Route::get('/product/{slug}', function (string $slug) {
     $locale = session('locale') ?? app()->getLocale();
 
@@ -38,6 +48,11 @@ Route::get('/{locale}/product/{slug}', [ProductController::class, 'show'])
     ->where('locale', $localePattern)
     ->middleware('setLocale')
     ->name('product.show');
+
+Route::get('/{locale}/product/{slug}/advanced', [ProductController::class, 'showAdvanced'])
+    ->where('locale', $localePattern)
+    ->middleware('setLocale')
+    ->name('product.show.advanced');
 
 Route::post('/{locale}/product/{slug}/reviews', [ProductController::class, 'storeReview'])
     ->where('locale', $localePattern)
@@ -158,6 +173,12 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'setLocale'])->get('/dashboard', [AccountController::class, 'index'])->name('dashboard');
+
+Route::middleware(['auth', 'setLocale'])->prefix('dashboard')->group(function () {
+    Route::get('/products', AdminProductIndex::class)->name('dashboard.products');
+    Route::get('/products/create', AdminProductForm::class)->name('dashboard.products.create');
+    Route::get('/products/{product}/edit', AdminProductForm::class)->name('dashboard.products.edit');
+});
 
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
