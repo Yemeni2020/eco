@@ -62,7 +62,7 @@
             </button>
 
             <!-- Logo -->
-            <a href="/" class="flex items-center gap-2 cursor-pointer">
+            <a href="{{ $routeLocalized('home') }}" class="flex items-center gap-2 cursor-pointer">
                 <div class="p-1 rounded-xl">
                     <img src="{{ asset('img/logo_avatar.svg') }}" alt="Otex logo"
                         class="h-14 w-auto object-contain drop-shadow-sm">

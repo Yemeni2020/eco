@@ -26,9 +26,13 @@ class LocaleController extends Controller
         }
 
         $segments = array_values(array_filter(explode('/', $parsed['path'] ?? ''), fn ($segment) => $segment !== ''));
-        if (count($segments) > 0 && in_array($segments[0], $allowed, true)) {
+
+        $first = $segments[0] ?? null;
+        $isAdmin = in_array($first, ['admin', 'dashboard'], true);
+
+        if (count($segments) > 0 && in_array($first, $allowed, true)) {
             $segments[0] = $locale;
-        } else {
+        } elseif (! $isAdmin) {
             array_unshift($segments, $locale);
         }
 

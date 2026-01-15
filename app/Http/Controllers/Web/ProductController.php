@@ -6,6 +6,7 @@ use App\Domain\Catalog\Actions\ListCategoriesAction;
 use App\Domain\Catalog\Actions\ListProductsAction;
 use App\Domain\Catalog\Actions\ShowProductAction;
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Support\LocaleSegment;
@@ -50,33 +51,37 @@ class ProductController extends Controller
 
     public function show(string $locale, string $slug, ShowProductAction $showProductAction)
     {
+        // 1) Locale normalization
         $requestedLocale = LocaleSegment::normalize($locale);
         $baseLocale = LocaleSegment::base($requestedLocale);
 
         app()->setLocale($requestedLocale);
         session(['locale' => $requestedLocale]);
 
-        // Your action already matches current locale slug OR other locale slug OR id
+        // 2) Fetch product (your action can find by current slug/other slug/id)
         $product = $showProductAction->execute($slug);
+
         $product->loadMissing([
+            'category',
             'options.values',
             'variants.optionValues.option',
             'variants.inventoryLevels.location',
             'mediaAssets',
+            'reviews',
         ]);
 
-        // If slug belongs to the OTHER locale, redirect to correct locale URL
-        $otherBase = $baseLocale === 'ar' ? 'en' : 'ar';
-        $slugCurrent = data_get($product->slug_translations ?? [], $baseLocale);
-        $slugOther = data_get($product->slug_translations ?? [], $otherBase);
+        // 3) Determine localized slugs
+        $slugCurrent = data_get($product->slug_translations ?? [], $baseLocale) ?: $product->slug;
 
-        if ($slugOther === $slug && $slugCurrent && $slugCurrent !== $slug) {
+        // ✅ Correct behavior: always keep same locale, redirect to correct localized slug
+        if ($slugCurrent && $slugCurrent !== $slug) {
             return redirect()->route('product.show', [
-                'locale' => $otherBase,
-                'slug' => $slugOther,
+                'locale' => $baseLocale,
+                'slug'   => $slugCurrent,
             ], 302);
         }
 
+        // 4) Localized description/summary
         $description = method_exists($product, 'getTranslation')
             ? $product->getTranslation('description_translations', $baseLocale)
             : ($product->description ?? '');
@@ -90,53 +95,63 @@ class ProductController extends Controller
             $summary = $description;
         }
 
-        $features = is_array($product->features) && count($product->features)
-            ? array_values(array_filter(array_map('trim', $product->features)))
+        // 5) Features
+        $features = (is_array($product->features) && count($product->features))
+            ? collect($product->features)->map(fn($v) => trim((string) $v))->filter()->values()->take(7)->all()
             : collect(preg_split('/\r\n|\r|\n/', (string) $description))
-                ->map(fn ($line) => trim((string) $line))
-                ->filter()
-                ->take(5)
-                ->values()
-                ->all();
+            ->map(fn($line) => trim((string) $line))
+            ->filter()
+            ->take(5)
+            ->values()
+            ->all();
 
+        // 6) Primary image (image > images[0] > gallery[0])
         $imageCandidates = [];
+
         if (!empty($product->image)) {
             $imageCandidates[] = $product->image;
-        } else {
-            if (is_array($product->images) && count($product->images)) {
-                $imageCandidates = array_merge($imageCandidates, $product->images);
-            }
-            if (is_array($product->gallery) && count($product->gallery)) {
-                $imageCandidates = array_merge($imageCandidates, $product->gallery);
-            }
         }
+        if (is_array($product->images) && count($product->images)) {
+            $imageCandidates = array_merge($imageCandidates, $product->images);
+        }
+        if (is_array($product->gallery) && count($product->gallery)) {
+            $imageCandidates = array_merge($imageCandidates, $product->gallery);
+        }
+
         $imageCandidates = array_values(array_filter($imageCandidates));
         $image = $this->resolveMediaUrl($imageCandidates[0] ?? null);
 
+        // 7) Rating stats from reviews relation (source of truth)
         $stats = $product->reviews()
             ->selectRaw('COALESCE(AVG(rating),0) as avg_rating, COUNT(*) as cnt')
             ->first();
-        $rating = round((float) ($stats->avg_rating ?? 0), 1);
+
+        $rating  = round((float) ($stats->avg_rating ?? 0), 1);
         $reviews = (int) ($stats->cnt ?? 0);
 
-        $availableStock = $product->availableStock();
+        // 8) Stock + recent reviews
+        $availableStock = method_exists($product, 'availableStock') ? $product->availableStock() : (int)($product->stock ?? 0);
+
         $recentReviews = $product->reviews()
             ->latest()
             ->take(3)
             ->get();
 
+        // 9) Shipping/returns
         $defaultShipping = [
             $availableStock > 0 ? 'Ships in 1-2 business days.' : 'Ships in 7-10 business days.',
             'Free 30-day returns on unused items.',
             'Warranty support included.',
         ];
-        $shippingReturns = is_array($product->shipping_returns) && count($product->shipping_returns)
+
+        $shippingReturns = (is_array($product->shipping_returns) && count($product->shipping_returns))
             ? $product->shipping_returns
             : $defaultShipping;
 
+        // 10) View model for Blade
         $viewProduct = [
             'id' => $product->id,
-            'slug' => $slugCurrent ?? $product->slug,
+            'slug' => $slugCurrent,
             'name' => $product->name ?? '',
             'category' => $product->category?->name ?? '-',
             'price' => (float) $product->price,
@@ -151,12 +166,55 @@ class ProductController extends Controller
             'shipping_returns' => $shippingReturns,
         ];
 
+        // 11) Related products (same category, exclude current)
+        $relatedProducts = Product::query()
+            ->whereKeyNot($product->id)
+            ->where('is_active', true)
+            ->where('category_id', $product->category_id)
+            ->with('category')
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->latest()
+            ->take(4)
+            ->get()
+            ->map(function ($p) use ($baseLocale) {
+                // localized slug
+                $slugLocalized = data_get($p->slug_translations ?? [], $baseLocale) ?: $p->slug;
+
+                // image
+                $candidates = [];
+                if (!empty($p->image)) $candidates[] = $p->image;
+                if (is_array($p->images) && count($p->images)) $candidates = array_merge($candidates, $p->images);
+                if (is_array($p->gallery) && count($p->gallery)) $candidates = array_merge($candidates, $p->gallery);
+
+                $candidates = array_values(array_filter($candidates));
+                $primaryImage = $this->resolveMediaUrl($candidates[0] ?? null);
+
+                $stock = method_exists($p, 'availableStock') ? $p->availableStock() : (int)($p->stock ?? 0);
+
+                return [
+                    'id' => $p->id,
+                    'slug' => $slugLocalized,
+                    'name' => $p->name ?? '',
+                    'category' => $p->category?->name ?? '-',
+                    'price' => (float) $p->price,
+                    'image' => $primaryImage,
+                    'rating' => round((float)($p->reviews_avg_rating ?? 0), 1),
+                    'reviews' => (int)($p->reviews_count ?? 0),
+                    'stock' => $stock,
+                    'stock_label' => $stock > 0 ? 'In stock' : 'Out of stock',
+                ];
+            })
+            ->values()
+            ->all();
+
         return view('pages.shop.show', [
             'product' => $viewProduct,
             'recentReviews' => $recentReviews,
             'options' => $this->serializeOptions($product),
             'variants' => $this->serializeVariants($product),
             'media' => $this->serializeMedia($product),
+            'relatedProducts' => $relatedProducts,
         ]);
     }
 

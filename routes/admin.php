@@ -5,7 +5,7 @@ use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('web')->group(function () {
+Route::middleware(['web', 'setLocale'])->group(function () {
     Route::view('admin/login', 'admin.auth.login')
         ->middleware('guest')
         ->name('admin.login');

@@ -36,7 +36,7 @@
 
         <div class="ms-auto flex items-center gap-2 shrink-0">
             <a
-                href="{{ route('home', $homeLocale) }}"
+                href="{{ route('home', ['locale' => $homeLocale]) }}"
                 class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-600 shadow-sm transition hover:border-blue-200 hover:text-blue-600 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                 aria-label="{{ __('Go to website') }}"
             >

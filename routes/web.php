@@ -154,7 +154,7 @@ Route::group([
     Route::view('/settings', 'pages.settings')->name('settings.dashboard');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'setLocale'])->group(function () {
     Route::redirect('settings', 'admin/setting/profile');
     Volt::route('admin/setting/profile', 'settings.profile')->name('admin.setting.profile');
     Volt::route('admin/settings/password', 'settings.password')->name('admin.setting.password');

@@ -8,8 +8,10 @@ use App\Models\Order;
 use App\Policies\AddressPolicy;
 use App\Policies\CartPolicy;
 use App\Policies\OrderPolicy;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\View;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Order::class, OrderPolicy::class);
         Gate::policy(Cart::class, CartPolicy::class);
         Gate::policy(Address::class, AddressPolicy::class);
+
+        View::addLocation(resource_path('views/admin'));
+        Blade::anonymousComponentPath(resource_path('views/admin/components'));
+        Blade::anonymousComponentPath(resource_path('views/admin/flux'), 'flux');
     }
 }

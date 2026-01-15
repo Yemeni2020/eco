@@ -1,3 +1,6 @@
+{{--  --}}
+
+the filters not working 
 @push('head')
     <script>
         // Safety for snippets expecting a global tailwind config object.
