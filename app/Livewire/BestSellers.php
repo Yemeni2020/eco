@@ -47,7 +47,7 @@ class BestSellers extends Component
             return;
         }
 
-        $cart = app(GetCartAction::class)->execute(auth()->user(), session()->getId());
+        $cart = app(GetCartAction::class)->execute(auth('customer')->user(), session()->getId());
 
         try {
             app(AddToCartAction::class)->execute($cart, $product, 1);

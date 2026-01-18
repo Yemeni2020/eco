@@ -16,7 +16,7 @@ class OrderController extends ApiController
 {
     public function quote(CheckoutQuoteRequest $request, GetCartAction $getCartAction, QuoteTotalsAction $quoteTotalsAction)
     {
-        $cart = $getCartAction->execute($request->user(), $this->sessionId($request));
+        $cart = $getCartAction->execute($request->user('customer'), $this->sessionId($request));
         $totals = $quoteTotalsAction->execute($cart);
 
         return $this->success([
@@ -26,7 +26,7 @@ class OrderController extends ApiController
 
     public function store(CreateOrderRequest $request, GetCartAction $getCartAction, CreateOrderAction $createOrderAction)
     {
-        $user = $request->user();
+        $user = $request->user('customer');
         $cart = $getCartAction->execute($user, $this->sessionId($request));
 
         $shipping = Address::query()
@@ -50,7 +50,7 @@ class OrderController extends ApiController
 
     public function index(Request $request)
     {
-        $orders = $request->user()->orders()->latest()->with('items')->paginate(10);
+        $orders = $request->user('customer')->orders()->latest()->with('items')->paginate(10);
         $payload = OrderResource::collection($orders)->response()->getData(true);
 
         return $this->success($payload);
@@ -58,7 +58,7 @@ class OrderController extends ApiController
 
     public function show(Request $request, int $id)
     {
-        $order = Order::query()->where('user_id', $request->user()->id)->with('items')->findOrFail($id);
+        $order = Order::query()->where('user_id', $request->user('customer')->id)->with('items')->findOrFail($id);
 
         return $this->success((new OrderResource($order))->resolve());
     }

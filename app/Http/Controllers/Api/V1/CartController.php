@@ -18,7 +18,7 @@ class CartController extends ApiController
 {
     public function index(Request $request, GetCartAction $action, QuoteTotalsAction $quoteTotalsAction)
     {
-        $cart = $action->execute($request->user(), $this->sessionId($request));
+        $cart = $action->execute($request->user('customer'), $this->sessionId($request));
         $totals = $quoteTotalsAction->execute($cart);
 
         return $this->success([
@@ -29,7 +29,7 @@ class CartController extends ApiController
 
     public function store(AddToCartRequest $request, GetCartAction $getCartAction, AddToCartAction $addToCartAction, QuoteTotalsAction $quoteTotalsAction)
     {
-        $cart = $getCartAction->execute($request->user(), $this->sessionId($request));
+        $cart = $getCartAction->execute($request->user('customer'), $this->sessionId($request));
         $product = Product::query()->findOrFail($request->input('product_id'));
         $addToCartAction->execute($cart, $product, (int) $request->input('qty'));
         $cart->load('items.product');
@@ -42,7 +42,7 @@ class CartController extends ApiController
 
     public function update(UpdateCartItemRequest $request, int $id, GetCartAction $getCartAction, UpdateCartItemQtyAction $updateCartItemQtyAction, QuoteTotalsAction $quoteTotalsAction)
     {
-        $cart = $getCartAction->execute($request->user(), $this->sessionId($request));
+        $cart = $getCartAction->execute($request->user('customer'), $this->sessionId($request));
         $item = CartItem::query()->where('cart_id', $cart->id)->findOrFail($id);
 
         $updateCartItemQtyAction->execute($item, (int) $request->input('qty'));
@@ -56,7 +56,7 @@ class CartController extends ApiController
 
     public function destroy(Request $request, int $id, GetCartAction $getCartAction, RemoveCartItemAction $removeCartItemAction, QuoteTotalsAction $quoteTotalsAction)
     {
-        $cart = $getCartAction->execute($request->user(), $this->sessionId($request));
+        $cart = $getCartAction->execute($request->user('customer'), $this->sessionId($request));
         $item = CartItem::query()->where('cart_id', $cart->id)->findOrFail($id);
 
         $removeCartItemAction->execute($item);

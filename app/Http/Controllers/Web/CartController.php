@@ -20,7 +20,7 @@ class CartController extends Controller
 {
     public function index(Request $request, GetCartAction $getCartAction, QuoteTotalsAction $quoteTotalsAction)
     {
-        $cart = $getCartAction->execute($request->user(), $request->session()->getId());
+        $cart = $getCartAction->execute($request->user('customer'), $request->session()->getId());
         $cart->loadMissing('items.product');
         $totals = $quoteTotalsAction->execute($cart);
 
@@ -55,7 +55,7 @@ class CartController extends Controller
         AddToCartAction $addToCartAction,
         QuoteTotalsAction $quoteTotalsAction,
     ) {
-        $cart = $getCartAction->execute($request->user(), $request->session()->getId());
+        $cart = $getCartAction->execute($request->user('customer'), $request->session()->getId());
         $product = Product::query()->findOrFail($request->input('product_id'));
         $addToCartAction->execute($cart, $product, (int) $request->input('qty'));
 
@@ -68,7 +68,7 @@ class CartController extends Controller
 
     public function update(UpdateCartItemRequest $request, int $id, GetCartAction $getCartAction, UpdateCartItemQtyAction $updateCartItemQtyAction)
     {
-        $cart = $getCartAction->execute($request->user(), $request->session()->getId());
+        $cart = $getCartAction->execute($request->user('customer'), $request->session()->getId());
         $item = CartItem::query()->where('cart_id', $cart->id)->findOrFail($id);
         $updateCartItemQtyAction->execute($item, (int) $request->input('qty'));
 
@@ -77,7 +77,7 @@ class CartController extends Controller
 
     public function destroy(Request $request, int $id, GetCartAction $getCartAction, RemoveCartItemAction $removeCartItemAction)
     {
-        $cart = $getCartAction->execute($request->user(), $request->session()->getId());
+        $cart = $getCartAction->execute($request->user('customer'), $request->session()->getId());
         $item = CartItem::query()->where('cart_id', $cart->id)->findOrFail($id);
         $removeCartItemAction->execute($item);
 

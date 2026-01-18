@@ -46,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
             $cartCount = 0;
 
             try {
-                $cart = app(GetCartAction::class)->execute(auth()->user(), request()->session()->getId());
+                $cart = app(GetCartAction::class)->execute(auth('customer')->user(), request()->session()->getId());
                 $cartCount = $cart->items->sum('qty');
             } catch (\Throwable $exception) {
                 logger()->warning('Failed to resolve cart count', ['exception' => $exception]);

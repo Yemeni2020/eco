@@ -16,8 +16,7 @@ class CheckoutController extends Controller
         QuoteTotalsAction $quoteTotalsAction,
         PaymentGatewaySettingsRepository $paymentGatewaySettingsRepository
     ) {
-    {
-        $user = $request->user();
+        $user = $request->user('customer');
         $cart = $getCartAction->execute($user, $request->session()->getId());
         $totals = $quoteTotalsAction->execute($cart);
 

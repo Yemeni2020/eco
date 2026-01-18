@@ -5,12 +5,17 @@ namespace App\Domain\Cart\Actions;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Customer;
+use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Support\Facades\DB;
 
 class GetCartAction
 {
-    public function execute(?Customer $user, ?string $sessionId, ?string $currency = null): Cart
+    public function execute(?Authenticatable $user, ?string $sessionId, ?string $currency = null): Cart
     {
+        if (! $user instanceof Customer) {
+            $user = null;
+        }
+
         $currency = $currency ?: config('store.currency', 'SAR');
 
         return DB::transaction(function () use ($user, $sessionId, $currency) {

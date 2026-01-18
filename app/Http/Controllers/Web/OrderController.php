@@ -17,7 +17,7 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $orders = $request->user()->orders()->latest()->get()->map(function (Order $order) {
+        $orders = $request->user('customer')->orders()->latest()->get()->map(function (Order $order) {
             return [
                 'id' => $order->order_number,
                 'placed_at' => $order->placed_at,
@@ -31,7 +31,7 @@ class OrderController extends Controller
 
     public function history(Request $request)
     {
-        $orders = $request->user()->orders()->latest()->with(['items.product', 'shipments'])->get();
+        $orders = $request->user('customer')->orders()->latest()->with(['items.product', 'shipments'])->get();
         $mapped = $orders->map(function (Order $order) {
             $delivery = $order->shipments->first()?->delivered_at ?? $order->placed_at;
             return [
@@ -57,7 +57,7 @@ class OrderController extends Controller
     {
         $orderModel = Order::query()
             ->where('order_number', $order)
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $request->user('customer')->id)
             ->with(['items.product', 'shippingAddress', 'billingAddress', 'payments', 'shipments'])
             ->firstOrFail();
 
@@ -66,10 +66,10 @@ class OrderController extends Controller
 
     public function store(CreateOrderRequest $request, GetCartAction $getCartAction, CreateOrderAction $createOrderAction, InitPaymentAction $initPaymentAction)
     {
-        $user = $request->user();
+        $user = $request->user('customer');
         $cart = $getCartAction->execute($user, $request->session()->getId());
 
-        $shipping = Address::query()->where('user_id', $user->id)->findOrFail($request->input('shipping_address_id'));
+            $shipping = Address::query()->where('user_id', $user->id)->findOrFail($request->input('shipping_address_id'));
         $billing = null;
         if ($request->filled('billing_address_id')) {
             $billing = Address::query()->where('user_id', $user->id)->findOrFail($request->input('billing_address_id'));
@@ -91,7 +91,7 @@ class OrderController extends Controller
 
     public function success(Request $request, ?string $order = null)
     {
-        $user = $request->user();
+        $user = $request->user('customer');
         if (!$user) {
             return redirect()->route('login');
         }
@@ -110,7 +110,7 @@ class OrderController extends Controller
 
     public function failed(Request $request, ?string $order = null)
     {
-        $user = $request->user();
+        $user = $request->user('customer');
         if (!$user) {
             return redirect()->route('login');
         }
@@ -132,7 +132,7 @@ class OrderController extends Controller
     {
         $orderModel = Order::query()
             ->where('order_number', $order)
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $request->user('customer')->id)
             ->with(['items.product', 'shippingAddress', 'billingAddress', 'payments', 'shipments'])
             ->firstOrFail();
 
@@ -182,7 +182,7 @@ class OrderController extends Controller
     {
         $orderModel = Order::query()
             ->where('order_number', $order)
-            ->where('user_id', $request->user()->id)
+            ->where('user_id', $request->user('customer')->id)
             ->with(['items.product', 'shippingAddress', 'billingAddress', 'payments', 'shipments'])
             ->firstOrFail();
 
