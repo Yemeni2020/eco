@@ -46,7 +46,7 @@
                                 </div>
                                 <button wire:click="addToCart({{ $product['id'] }})"
                                     class="absolute right-3 top-3 z-20 grid h-9 w-9 place-items-center rounded-full bg-white/95 text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white"
-                                    type="button" aria-label="Add to cart">
+                                    type="button" aria-label="Add to cart" wire:loading.attr="disabled">
                                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
                                         <path
                                             d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z" />
@@ -82,9 +82,14 @@
                                                     :amount="number_format($product['old_price'], 2)" /></span>
                                         @endif
                                     </div>
-                                    <x-button wire:click="addToCart({{ $product['id'] }})"
+                                    <x-button
+                                        data-add-to-cart
+                                        data-product-id="{{ $product['id'] }}"
+                                        data-qty="1"
                                         class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
-                                        type="button">
+                                        type="button"
+                                        wire:click="addToCart({{ $product['id'] }})"
+                                        wire:loading.attr="disabled">
                                         Add
                                     </x-button>
                                 </div>

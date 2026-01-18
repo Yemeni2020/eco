@@ -4,12 +4,12 @@ namespace App\Domain\Cart\Actions;
 
 use App\Models\Cart;
 use App\Models\CartItem;
-use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 
 class GetCartAction
 {
-    public function execute(?User $user, ?string $sessionId, ?string $currency = null): Cart
+    public function execute(?Customer $user, ?string $sessionId, ?string $currency = null): Cart
     {
         $currency = $currency ?: config('store.currency', 'SAR');
 

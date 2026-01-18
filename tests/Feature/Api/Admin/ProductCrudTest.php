@@ -10,7 +10,7 @@ use App\Models\Product;
 use App\Models\ProductOption;
 use App\Models\ProductOptionValue;
 use App\Models\ProductVariant;
-use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
@@ -18,7 +18,7 @@ use Laravel\Sanctum\Sanctum;
 uses(RefreshDatabase::class);
 
 it('creates a product with options, variants, media, inventory, and attributes', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
     Sanctum::actingAs($user);
 
     $category = Category::factory()->create();

@@ -14,7 +14,7 @@ class CartSidebar extends Component
 {
     public $cart = [];
     public $isOpen = false;
-    protected $listeners = ['open-cart' => 'open', 'close-cart' => 'close'];
+    protected $listeners = ['open-cart' => 'open', 'close-cart' => 'close', 'cartUpdated' => 'refreshCart'];
 
     public function mount()
     {
@@ -103,9 +103,12 @@ class CartSidebar extends Component
         return view('livewire.cart-sidebar');
     }
 
-    private function refreshCart(): void
+    public function refreshCart(): void
     {
-        $cart = app(GetCartAction::class)->execute(auth()->user(), session()->getId());
+        $cart = app(GetCartAction::class)->execute(
+            auth('customer')->user(),
+            session()->getId()
+        );
 
         $this->cart = $cart->items->map(function ($item) {
             $image = $item->product?->image ?? ($item->product?->gallery[0] ?? null);

@@ -2,13 +2,13 @@
     <main class="flex-grow bg-slate-50">
         <div class="min-h-screen grid lg:grid-cols-2">
             <div class="flex items-center justify-center px-6 py-12">
-                <div class="w-full max-w-md">
-                    <div class="mb-8">
-                        <img src="{{ asset('img/logo_text.svg') }}" alt="Your Company" class="h-auto w-auto">
+                <div class="w-full max-w-md space-y-8">
+                    <div>
+                        <img src="{{ asset('img/logo_text.svg') }}" alt="Otex logo" class="h-auto w-auto">
                         <h2 class="mt-6 text-2xl font-semibold text-slate-900">Sign in to your account</h2>
                         <p class="mt-2 text-sm text-slate-600">
                             Not a member?
-                            <a href="/signup" class="font-semibold text-[#1F4BD8] hover:text-[#1F4BD8]">Sign up</a>
+                            <a href="{{ route('register') }}" class="font-semibold text-[#1F4BD8] hover:text-[#1F4BD8]">Sign up</a>
                         </p>
                     </div>
 
@@ -17,7 +17,7 @@
                         <div>
                             <label for="email" class="block text-sm font-medium text-slate-700">Email address</label>
                             <div class="mt-2">
-                                <input id="email" type="email" name="email" required autocomplete="email"
+                                <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="email"
                                     class="block w-full rounded-lg border border-slate-200 px-4 py-2 text-sm text-slate-900 shadow-sm focus:border-[#1F4BD8] focus:outline-none focus:ring-2 focus:ring-[#1F4BD8]/20">
                             </div>
                         </div>
@@ -36,7 +36,7 @@
                                     class="h-4 w-4 rounded border-slate-300 text-[#1F4BD8] focus:ring-[#1F4BD8]">
                                 Remember me
                             </label>
-                            <a href="#" class="text-sm font-semibold text-[#1F4BD8] hover:text-[#1F4BD8]">Forgot password?</a>
+                            <a href="{{ route('password.request') }}" class="text-sm font-semibold text-[#1F4BD8] hover:text-[#1F4BD8]">Forgot password?</a>
                         </div>
 
                         <button type="submit"
@@ -45,7 +45,7 @@
                         </button>
                     </form>
 
-                    <div class="mt-8">
+                    <div>
                         <div class="relative">
                             <div class="absolute inset-0 flex items-center" aria-hidden="true">
                                 <div class="w-full border-t border-slate-200"></div>

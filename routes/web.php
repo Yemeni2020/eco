@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Auth\CustomerLogoutController;
+use App\Http\Controllers\Auth\PhoneLoginController;
 use App\Http\Controllers\Web\Account\AccountController;
 use App\Http\Controllers\Web\Account\OrdersController;
 use App\Http\Controllers\Web\Account\PasswordController;
@@ -29,6 +31,10 @@ use Spatie\Browsershot\Browsershot;
 $localePattern = 'ar(?:_[a-z]{2})?|en(?:_[a-z]{2})?';
 
 Route::pattern('locale', $localePattern);
+
+Route::get('/{locale}/login', [PhoneLoginController::class, 'showRequestForm'])
+    ->where('locale', $localePattern)
+    ->middleware('setLocale');
 
 Route::get('/{locale}/admin/{path?}', function (string $locale, ?string $path = null) {
     $target = '/admin' . ($path ? '/' . ltrim($path, '/') : '');
@@ -66,17 +72,25 @@ Route::get('/shop/{slug}', function (string $slug) {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])->name('login');
     Route::post('/login', [AuthenticatedSessionController::class, 'store'])->name('login.store');
+    Route::get('/login/email', [AuthenticatedSessionController::class, 'create'])->name('login.email');
     Route::get('/register', [RegisteredUserController::class, 'create'])->name('register');
     Route::post('/register', [RegisteredUserController::class, 'store'])->name('register.store');
     Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
     Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
     Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
-    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
+        Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.update');
 });
 
-Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])->name('logout')->middleware('auth');
+Route::middleware(['web', 'guest:customer'])->group(function () {
+    Route::get('/login', [PhoneLoginController::class, 'showRequestForm'])->name('login');
+    Route::post('/login/phone/request-otp', [PhoneLoginController::class, 'requestOtp'])->name('phone.login.request');
+    Route::get('/login/phone/verify', [PhoneLoginController::class, 'showVerifyForm'])->name('phone.login.verify');
+    Route::post('/login/phone/verify', [PhoneLoginController::class, 'verifyOtp'])->name('phone.login.verify.submit');
+    Route::redirect('/login/phone', '/login');
+});
+
+Route::post('/logout', CustomerLogoutController::class)->name('logout')->middleware('auth:customer');
 
 Route::middleware('auth')->group(function () {
     Route::get('/email/verify', EmailVerificationPromptController::class)->name('verification.notice');
@@ -107,7 +121,7 @@ Route::group([
     Route::patch('/cart/items/{id}', [CartController::class, 'update'])->name('cart.items.update');
     Route::delete('/cart/items/{id}', [CartController::class, 'destroy'])->name('cart.items.destroy');
 
-    Route::middleware(['auth'])->group(function () {
+    Route::middleware(['auth:customer', 'customer.not_blocked'])->group(function () {
         Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
         Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders');
@@ -154,7 +168,7 @@ Route::group([
     Route::view('/settings', 'pages.settings')->name('settings.dashboard');
 });
 
-Route::middleware(['auth', 'setLocale'])->group(function () {
+Route::middleware(['auth:admin', 'setLocale', 'admin'])->group(function () {
     Route::redirect('settings', 'admin/setting/profile');
     Volt::route('admin/setting/profile', 'settings.profile')->name('admin.setting.profile');
     Volt::route('admin/settings/password', 'settings.password')->name('admin.setting.password');
@@ -172,9 +186,9 @@ Route::middleware(['auth', 'setLocale'])->group(function () {
         ->name('admin.setting.twofactor');
 });
 
-Route::middleware(['auth', 'setLocale'])->get('/dashboard', [AccountController::class, 'index'])->name('dashboard');
+Route::middleware(['auth:customer', 'setLocale', 'customer.not_blocked'])->get('/dashboard', [AccountController::class, 'index'])->name('dashboard');
 
-Route::middleware(['auth', 'setLocale'])->prefix('dashboard')->group(function () {
+Route::middleware(['auth:customer', 'setLocale', 'customer.not_blocked'])->prefix('dashboard')->group(function () {
     Route::get('/products', AdminProductIndex::class)->name('dashboard.products');
     Route::get('/products/create', AdminProductForm::class)->name('dashboard.products.create');
     Route::get('/products/{product}/edit', AdminProductForm::class)->name('dashboard.products.edit');

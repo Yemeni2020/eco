@@ -522,7 +522,6 @@ the filters not working
                             <path
                                 d="M4.25 2A2.25 2.25 0 0 0 2 4.25v2.5A2.25 2.25 0 0 0 4.25 9h2.5A2.25 2.25 0 0 0 9 6.75v-2.5A2.25 2.25 0 0 0 6.75 2h-2.5Zm0 9A2.25 2.25 0 0 0 2 13.25v2.5A2.25 2.25 0 0 0 4.25 18h2.5A2.25 2.25 0 0 0 9 15.75v-2.5A2.25 2.25 0 0 0 6.75 11h-2.5Zm9-9A2.25 2.25 0 0 0 11 4.25v2.5A2.25 2.25 0 0 0 13.25 9h2.5A2.25 2.25 0 0 0 18 6.75v-2.5A2.25 2.25 0 0 0 15.75 2h-2.5Zm0 9A2.25 2.25 0 0 0 11 13.25v2.5A2.25 2.25 0 0 0 13.25 18h2.5A2.25 2.25 0 0 0 18 15.75v-2.5A2.25 2.25 0 0 0 15.75 11h-2.5Z"
                                 clip-rule="evenodd" fill-rule="evenodd" />
-                        </svg>
                     </button>
                     <button type="button" data-view-two-column aria-pressed="false"
                         class="-m-2 ml-1 p-2 text-gray-400 hover:text-gray-500"
@@ -532,7 +531,6 @@ the filters not working
                             <path
                                 d="M4.25 2A2.25 2.25 0 0 0 2 4.25v11.5A2.25 2.25 0 0 0 4.25 18h2.5A2.25 2.25 0 0 0 9 15.75V4.25A2.25 2.25 0 0 0 6.75 2h-2.5Zm9 0A2.25 2.25 0 0 0 11 4.25v11.5A2.25 2.25 0 0 0 13.25 18h2.5A2.25 2.25 0 0 0 18 15.75V4.25A2.25 2.25 0 0 0 15.75 2h-2.5Z"
                                 clip-rule="evenodd" fill-rule="evenodd" />
-                        </svg>
                     </button>
                     <button type="button" data-view-list aria-pressed="false"
                         class="-m-2 ml-1 p-2 text-gray-400 hover:text-gray-500"
@@ -542,7 +540,6 @@ the filters not working
                             <path
                                 d="M4 5.25A1.25 1.25 0 0 1 5.25 4h9.5a1.25 1.25 0 0 1 0 2.5h-9.5A1.25 1.25 0 0 1 4 5.25Zm0 5A1.25 1.25 0 0 1 5.25 9h9.5a1.25 1.25 0 0 1 0 2.5h-9.5A1.25 1.25 0 0 1 4 10.25Zm1.25 4.75a1.25 1.25 0 0 0 0 2.5h9.5a1.25 1.25 0 0 0 0-2.5h-9.5Z"
                                 clip-rule="evenodd" fill-rule="evenodd" />
-                        </svg>
                     </button>
                     <button type="button" command="show-modal" commandfor="mobile-filters"
                         class="-m-2 ml-4 p-2 text-gray-400 hover:text-gray-500 sm:ml-6 lg:hidden">
@@ -552,7 +549,6 @@ the filters not working
                             <path
                                 d="M2.628 1.601C5.028 1.206 7.49 1 10 1s4.973.206 7.372.601a.75.75 0 0 1 .628.74v2.288a2.25 2.25 0 0 1-.659 1.59l-4.682 4.683a2.25 2.25 0 0 0-.659 1.59v3.037c0 .684-.31 1.33-.844 1.757l-1.937 1.55A.75.75 0 0 1 8 18.25v-5.757a2.25 2.25 0 0 0-.659-1.591L2.659 6.22A2.25 2.25 0 0 1 2 4.629V2.34a.75.75 0 0 1 .628-.74Z"
                                 clip-rule="evenodd" fill-rule="evenodd" />
-                        </svg>
                     </button>
                 </div>
             </div>
@@ -599,7 +595,6 @@ the filters not working
                                             <path
                                                 d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z"
                                                 clip-rule="evenodd" fill-rule="evenodd" />
-                                        </svg>
                                     </span>
                                 </button>
                             </h3>
@@ -739,7 +734,6 @@ the filters not working
                                             <path
                                                 d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z"
                                                 clip-rule="evenodd" fill-rule="evenodd" />
-                                        </svg>
                                     </span>
                                 </button>
                             </h3>
@@ -786,7 +780,6 @@ the filters not working
                                             <path
                                                 d="M4 10a.75.75 0 0 1 .75-.75h10.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 10Z"
                                                 clip-rule="evenodd" fill-rule="evenodd" />
-                                        </svg>
                                     </span>
                                 </button>
                             </h3>
@@ -978,8 +971,16 @@ the filters not working
                                             <span class="text-xl font-bold text-blue-600"><x-currency
                                                     :amount="number_format($product['price'], 2)" /></span>
                                             <div class="flex items-center gap-2">
-                                                <x-button type="button" size="sm" variant="solid"
-                                                    class="rounded-full px-4" data-add-to-cart>
+                                                <x-button
+                                                    type="button"
+                                                    size="sm"
+                                                    variant="solid"
+                                                    class="rounded-full px-4"
+                                                    data-add-to-cart
+                                                    data-product-id="{{ $product['id'] }}"
+                                                    data-qty="1"
+                                                    wire:click="addToCart({{ $product['id'] }})"
+                                                    wire:loading.attr="disabled">
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24"
                                                         height="24" viewBox="0 0 24 24" fill="none"
                                                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -988,8 +989,7 @@ the filters not working
                                                         data-cart-icon>
                                                         <circle cx="8" cy="21" r="1"></circle>
                                                         <circle cx="19" cy="21" r="1"></circle>
-                                                        <path
-                                                            d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12">
+                                                        <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12">
                                                         </path>
                                                     </svg>
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24"

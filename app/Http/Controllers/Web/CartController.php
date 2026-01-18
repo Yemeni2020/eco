@@ -10,6 +10,7 @@ use App\Domain\Orders\Actions\QuoteTotalsAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\AddToCartRequest;
 use App\Http\Requests\UpdateCartItemRequest;
+use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -48,11 +49,19 @@ class CartController extends Controller
         ]);
     }
 
-    public function store(AddToCartRequest $request, GetCartAction $getCartAction, AddToCartAction $addToCartAction)
-    {
+    public function store(
+        AddToCartRequest $request,
+        GetCartAction $getCartAction,
+        AddToCartAction $addToCartAction,
+        QuoteTotalsAction $quoteTotalsAction,
+    ) {
         $cart = $getCartAction->execute($request->user(), $request->session()->getId());
         $product = Product::query()->findOrFail($request->input('product_id'));
         $addToCartAction->execute($cart, $product, (int) $request->input('qty'));
+
+        if ($request->wantsJson()) {
+            return $this->respondWithJson($cart, $quoteTotalsAction);
+        }
 
         return redirect()->route('cart');
     }
@@ -73,5 +82,37 @@ class CartController extends Controller
         $removeCartItemAction->execute($item);
 
         return redirect()->route('cart');
+    }
+
+    private function respondWithJson(Cart $cart, QuoteTotalsAction $quoteTotalsAction, ?string $message = null)
+    {
+        $cart->refresh();
+        $cart->load('items.product');
+
+        $totals = $quoteTotalsAction->execute($cart);
+
+        $items = $cart->items->map(function (CartItem $item) {
+            $product = $item->product;
+            $price = (float) $item->price_snapshot;
+
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'qty' => $item->qty,
+                'price' => $price,
+                'total' => $price * $item->qty,
+                'name' => $product?->name,
+                'image' => $product?->image,
+            ];
+        })->values();
+
+        return response()->json([
+            'ok' => true,
+            'message' => $message ?? __('Item added to cart.'),
+            'cart_count' => $items->sum('qty'),
+            'item_count' => $items->count(),
+            'items' => $items,
+            'totals' => $totals,
+        ]);
     }
 }

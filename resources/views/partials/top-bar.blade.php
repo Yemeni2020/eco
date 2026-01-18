@@ -1,5 +1,5 @@
 
-<div id="siteTopbar" class="block bg-white border-b border-gray-200 topbar-transition"
+<div id="siteTopbar" class="block bg-white border-b border-gray-200 topbar-transition dark:bg-black dark:border-gray-800"
     style="position: fixed; top: 0; left: 0; right: 0; z-index: 60;">
     <div class="w-full">
         <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">

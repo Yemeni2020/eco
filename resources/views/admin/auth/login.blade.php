@@ -1,11 +1,18 @@
 <x-layouts.auth>
     <div class="flex flex-col gap-6">
-        <x-auth-header :title="__('Log in to your account')" :description="__('Enter your email and password below to log in')" />
+        <x-auth-header
+            :title="__('Admin console')"
+            :description="__('Use your administrator credentials to access the dashboard')"
+        />
+
+        <div class="rounded-2xl bg-amber-50/60 p-4 text-sm text-amber-900 dark:bg-amber-900/20 dark:text-amber-200">
+            This login is tied to the dedicated admin guard and cannot be used on the customer storefront.
+        </div>
 
         <!-- Session Status -->
         <x-auth-session-status class="text-center" :status="session('status')" />
 
-        <form method="POST" action="{{ route('login.store') }}" class="flex flex-col gap-6">
+        <form method="POST" action="{{ route('admin.login.submit') }}" class="flex flex-col gap-6">
             @csrf
             <input type="hidden" name="admin_login" value="1">
 

@@ -98,40 +98,48 @@
         </div>
 
         <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const root = document.documentElement;
-                const toggle = document.getElementById('adminThemeToggle');
-                const iconSun = document.getElementById('adminThemeIconSun');
-                const iconMoon = document.getElementById('adminThemeIconMoon');
+            (() => {
+                const initializeThemeToggle = () => {
+                    const root = document.documentElement;
+                    const toggle = document.getElementById('adminThemeToggle');
+                    const iconSun = document.getElementById('adminThemeIconSun');
+                    const iconMoon = document.getElementById('adminThemeIconMoon');
 
-                const applyTheme = (theme) => {
-                    root.dataset.theme = theme;
-                    if (theme === 'dark') {
-                        root.classList.add('dark');
-                        if (iconSun && iconMoon) {
-                            iconSun.classList.add('hidden');
-                            iconMoon.classList.remove('hidden');
+                    const applyTheme = (theme) => {
+                        root.dataset.theme = theme;
+                        if (theme === 'dark') {
+                            root.classList.add('dark');
+                            if (iconSun && iconMoon) {
+                                iconSun.classList.add('hidden');
+                                iconMoon.classList.remove('hidden');
+                            }
+                        } else {
+                            root.classList.remove('dark');
+                            if (iconSun && iconMoon) {
+                                iconSun.classList.remove('hidden');
+                                iconMoon.classList.add('hidden');
+                            }
                         }
-                    } else {
-                        root.classList.remove('dark');
-                        if (iconSun && iconMoon) {
-                            iconSun.classList.remove('hidden');
-                            iconMoon.classList.add('hidden');
-                        }
+                    };
+
+                    const storedTheme = localStorage.getItem('theme');
+                    applyTheme(storedTheme || 'light');
+
+                    if (toggle) {
+                        toggle.addEventListener('click', () => {
+                            const next = root.classList.contains('dark') ? 'light' : 'dark';
+                            localStorage.setItem('theme', next);
+                            applyTheme(next);
+                        });
                     }
                 };
 
-                const storedTheme = localStorage.getItem('theme');
-                applyTheme(storedTheme || 'light');
-
-                if (toggle) {
-                    toggle.addEventListener('click', () => {
-                        const next = root.classList.contains('dark') ? 'light' : 'dark';
-                        localStorage.setItem('theme', next);
-                        applyTheme(next);
-                    });
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializeThemeToggle);
+                } else {
+                    initializeThemeToggle();
                 }
-            });
+            })();
         </script>
 
         @fluxScripts

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Customer;
 use App\Services\Security\SecuritySettings;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -46,7 +46,7 @@ class SocialAuthController extends Controller
             return redirect()->route('login')->withErrors(['social' => 'No email returned by the provider.']);
         }
 
-        $user = User::firstOrCreate(
+        $user = Customer::firstOrCreate(
             ['email' => $email],
             [
                 'name' => $socialUser->getName() ?? $socialUser->getNickname() ?? $email,
@@ -54,7 +54,7 @@ class SocialAuthController extends Controller
             ]
         );
 
-        Auth::login($user, true);
+        Auth::guard('customer')->login($user, true);
 
         return redirect()->intended('/');
     }

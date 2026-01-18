@@ -4,16 +4,16 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Requests\AuthLoginRequest;
 use App\Http\Requests\AuthRegisterRequest;
-use App\Models\User;
+use App\Models\Customer;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
 
 class AuthController extends ApiController
 {
     public function register(AuthRegisterRequest $request)
     {
-        $user = User::create([
+        $user = Customer::create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
@@ -33,11 +33,11 @@ class AuthController extends ApiController
 
     public function login(AuthLoginRequest $request)
     {
-        if (!Auth::attempt($request->only('email', 'password'))) {
+        if (! Auth::guard('customer')->attempt($request->only('email', 'password'))) {
             return $this->error('Invalid credentials.', ['email' => ['Invalid credentials.']], 401);
         }
 
-        $user = $request->user();
+        $user = Auth::guard('customer')->user();
         $token = $user->createToken('api')->plainTextToken;
 
         return $this->success([
@@ -52,7 +52,7 @@ class AuthController extends ApiController
 
     public function logout(Request $request)
     {
-        $user = $request->user();
+        $user = Auth::guard('customer')->user();
         if ($user && $user->currentAccessToken()) {
             $user->currentAccessToken()->delete();
         }
@@ -62,7 +62,7 @@ class AuthController extends ApiController
 
     public function me(Request $request)
     {
-        $user = $request->user();
+        $user = Auth::guard('customer')->user();
 
         return $this->success([
             'id' => $user->id,

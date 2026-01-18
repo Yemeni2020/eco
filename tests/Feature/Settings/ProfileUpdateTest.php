@@ -1,18 +1,18 @@
 <?php
 
-use App\Models\User;
+use App\Models\Customer;
 use Livewire\Volt\Volt;
 
 test('profile page is displayed', function () {
-    $this->actingAs($user = User::factory()->create());
+    $this->actingAs($user = Customer::factory()->create(), 'customer');
 
     $this->get(route('admin.setting.profile'))->assertOk();
 });
 
 test('profile information can be updated', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
-    $this->actingAs($user);
+    $this->actingAs($user, 'customer');
 
     $response = Volt::test('settings.profile')
         ->set('name', 'Test User')
@@ -29,9 +29,9 @@ test('profile information can be updated', function () {
 });
 
 test('email verification status is unchanged when email address is unchanged', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
-    $this->actingAs($user);
+    $this->actingAs($user, 'customer');
 
     $response = Volt::test('settings.profile')
         ->set('name', 'Test User')
@@ -44,9 +44,9 @@ test('email verification status is unchanged when email address is unchanged', f
 });
 
 test('user can delete their account', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
-    $this->actingAs($user);
+    $this->actingAs($user, 'customer');
 
     $response = Volt::test('settings.delete-user-form')
         ->set('password', 'password')
@@ -61,9 +61,9 @@ test('user can delete their account', function () {
 });
 
 test('correct password must be provided to delete account', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
-    $this->actingAs($user);
+    $this->actingAs($user, 'customer');
 
     $response = Volt::test('settings.delete-user-form')
         ->set('password', 'wrong-password')

@@ -25,7 +25,8 @@ class HomeController extends Controller
         $featuredPaginator = $listProductsAction->execute(['sort' => 'newest'], 8);
         $featuredProducts = $featuredPaginator->getCollection()->map(function ($product) {
             return [
-                'id' => $product->slug,
+                'id' => $product->id,
+                'slug' => $product->slug,
                 'title' => $product->name,
                 'brand' => $product->category?->name,
                 'price' => (float) $product->price,

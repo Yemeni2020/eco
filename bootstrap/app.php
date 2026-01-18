@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'auth' => \App\Http\Middleware\Authenticate::class,
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'setLocale' => \App\Http\Middleware\SetLocale::class,
+            'customer.not_blocked' => \App\Http\Middleware\EnsureCustomerIsNotBlocked::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

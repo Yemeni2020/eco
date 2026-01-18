@@ -179,11 +179,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cartButton) {
         cartButton.addEventListener(
             'click',
-            (e) => {
-                e.preventDefault();
-                if (window.Livewire) {
-                    window.Livewire.dispatch('open-cart');
-                }
+            () => {
+                cartButton.blur();
             },
             { passive: true }
         );

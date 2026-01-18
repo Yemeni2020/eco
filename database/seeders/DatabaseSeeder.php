@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Customer;
 use App\Models\Product;
-use App\Models\User;
 use Database\Seeders\AttributeDefinitionSeeder;
 use Database\Seeders\ProductSeeder;
 use Database\Seeders\ColorSeeder;
@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate(
+        Customer::firstOrCreate(
             ['email' => 'demo@example.com'],
             [
                 'name' => 'Demo Customer',
@@ -44,5 +44,8 @@ class DatabaseSeeder extends Seeder
         if (app()->environment(['local', 'development'])) {
             $this->call(DemoCatalogSeeder::class);
         }
+
+        $this->call(AdminSeeder::class);
+        $this->call(CustomerSeeder::class);
     }
 }

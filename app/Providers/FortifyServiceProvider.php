@@ -8,7 +8,7 @@ use App\Actions\Fortify\LogoutResponse;
 use App\Actions\Fortify\RegisterResponse;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\VerifyEmailResponse;
-use App\Models\User;
+use App\Models\Customer;
 use App\Services\Security\SecuritySettings;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -71,16 +71,10 @@ class FortifyServiceProvider extends ServiceProvider
                 }
             }
 
-            $user = User::where(Fortify::username(), $username)->first();
+            $user = Customer::where(Fortify::username(), $username)->first();
 
             if (! $user || ! Hash::check($request->password, $user->password)) {
                 return null;
-            }
-
-            if ($request->boolean('admin_login') && ! $user->is_admin) {
-                throw ValidationException::withMessages([
-                    Fortify::username() => __('This account does not have admin access.'),
-                ]);
             }
 
             return $user;

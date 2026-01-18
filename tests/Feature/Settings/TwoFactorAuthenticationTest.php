@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\User;
+use App\Models\Customer;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
 
@@ -16,9 +16,9 @@ beforeEach(function () {
 });
 
 test('two factor settings page can be rendered', function () {
-    $user = User::factory()->withoutTwoFactor()->create();
+    $user = Customer::factory()->withoutTwoFactor()->create();
 
-    $this->actingAs($user)
+    $this->actingAs($user, 'customer')
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('admin.setting.twofactor'))
         ->assertOk()
@@ -27,9 +27,9 @@ test('two factor settings page can be rendered', function () {
 });
 
 test('two factor settings page requires password confirmation when enabled', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
-    $response = $this->actingAs($user)
+    $response = $this->actingAs($user, 'customer')
         ->get(route('admin.setting.twofactor'));
 
     $response->assertRedirect(route('password.confirm'));
@@ -38,9 +38,9 @@ test('two factor settings page requires password confirmation when enabled', fun
 test('two factor settings page returns forbidden response when two factor is disabled', function () {
     config(['fortify.features' => []]);
 
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
-    $response = $this->actingAs($user)
+    $response = $this->actingAs($user, 'customer')
         ->withSession(['auth.password_confirmed_at' => time()])
         ->get(route('admin.setting.twofactor'));
 
@@ -48,7 +48,7 @@ test('two factor settings page returns forbidden response when two factor is dis
 });
 
 test('two factor authentication disabled when confirmation abandoned between requests', function () {
-    $user = User::factory()->create();
+    $user = Customer::factory()->create();
 
     $user->forceFill([
         'two_factor_secret' => encrypt('test-secret'),
@@ -56,13 +56,13 @@ test('two factor authentication disabled when confirmation abandoned between req
         'two_factor_confirmed_at' => null,
     ])->save();
 
-    $this->actingAs($user);
+    $this->actingAs($user, 'customer');
 
     $component = Volt::test('settings.two-factor');
 
     $component->assertSet('twoFactorEnabled', false);
 
-    $this->assertDatabaseHas('users', [
+    $this->assertDatabaseHas('customers', [
         'id' => $user->id,
         'two_factor_secret' => null,
         'two_factor_recovery_codes' => null,

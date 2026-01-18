@@ -218,7 +218,7 @@
                                 <article class="slide snap-start shrink-0 w-[220px] sm:w-[240px] md:w-[260px]">
                                     <div
                                         class="group relative rounded-2xl border border-zinc-200 bg-white shadow-sm hover:shadow-md transition-shadow overflow-hidden">
-                                        <a href="/shop/{{ $product['id'] ?? '' }}" class="absolute inset-0 z-10"
+                                        <a href="/shop/{{ $product['slug'] ?? '' }}" class="absolute inset-0 z-10"
                                             aria-label="View {{ $product['title'] ?? '' }}"></a>
                                         <div class="relative aspect-[4/3] bg-zinc-100 overflow-hidden">
                                             <img class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -229,27 +229,23 @@
                                                     class="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-zinc-800 shadow-sm ring-1 ring-black/5">
                                                     {{ $product['badge'] ?? $product['brand'] ?? 'Featured' }}</span>
                                             </div>
-                                            <button data-add-to-cart
+                                            <button
+                                                data-product-id="{{ $product['id'] ?? '' }}"
+                                                data-qty="1"
+                                                data-add-to-cart
                                                 class="absolute right-3 top-3 z-20 flex items-center rounded-full bg-white/95 px-3 py-2 text-xs font-bold text-zinc-900 shadow-sm ring-1 ring-black/5 hover:bg-white active:scale-[0.98]"
-                                                type="button" aria-label="Add to cart">
+                                                type="button"
+                                                aria-label="Add to cart"
+                                                wire:click="addToCart({{ $product['id'] }})"
+                                                wire:loading.attr="disabled">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                                     viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                                                     class="w-4 h-4 mr-1" data-cart-icon>
                                                     <circle cx="8" cy="21" r="1"></circle>
                                                     <circle cx="19" cy="21" r="1"></circle>
-                                                    <path
-                                                        d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12">
-                                                    </path>
-                                                </svg>
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                                                    class="hidden w-4 h-4 mr-1 text-emerald-500" data-check-icon>
-                                                    <polyline points="20 6 9 17 4 12"></polyline>
-                                                </svg>
-                                                Add
-                                            </button>
+                                                    <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12">
+                                                </button>
                                         </div>
                                         <div class="p-4">
                                             <div class="text-xs text-zinc-500">{{ $product['brand'] ?? '' }}</div>
@@ -286,9 +282,14 @@
                                                         </span>
                                                     @endif
                                                 </div>
-                                                <button data-add-to-cart
-                                                    class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
-                                                    type="button">
+                                                <button 
+                                                
+                                                wire:loading.attr="disabled"
+                                                class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
+                                                type="button"
+                                                data-product-id="{{ $product['id'] ?? '' }}"
+                                                data-qty="1"
+                                                data-add-to-cart>
                                                     Add
                                                 </button>
                                             </div>
@@ -390,9 +391,15 @@
                         <p class="text-slate-600">{{ $previewProduct['description'] ?? '' }}</p>
 
                         <div class="flex flex-wrap gap-3">
-                            <x-button type="button" size="lg" variant="solid" class="rounded-full px-6">Add to
+                            <x-button type="button" size="lg" variant="solid" class="rounded-full px-6"
+                                wire:click="addToCart({{ $previewProduct['id'] ?? '' }})"
+                                wire:loading.attr="disabled"
+                                data-add-to-cart
+                                data-product-id="{{ $previewProduct['id'] ?? '' }}"
+                                data-qty="1"
+                            >Add to
                                 bag</x-button>
-                            <a href="/shop/{{ $previewProduct['id'] ?? '' }}"
+                            <a href="/shop/{{ $previewProduct['slug'] ?? '' }}"
                                 class="inline-flex h-12 items-center justify-center rounded-full border border-slate-200 px-6 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50">View
                                 full details</a>
                         </div>
@@ -478,7 +485,6 @@
                                     type="button" aria-label="Add to cart">
                                     <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor" aria-hidden="true">
                                         <path d="M7 4H5L4 6v2h2l3.6 7.59-1.35 2.44A2 2 0 0 0 10 22h10v-2H10l1.1-2h7.45a2 2 0 0 0 1.75-1.03L23 8H7.42L7 7H4V5h2l1-2ZM10 20a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm10 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"/>
-                                    </svg>
                                 </button>
                             </div>
 
@@ -499,6 +505,7 @@
                                     </div>
 
                                     <button data-add
+                                        
                                         class="relative z-20 rounded-full bg-zinc-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-zinc-800 active:scale-[0.98]"
                                         type="button">
                                         Add
@@ -798,4 +805,3 @@
 @endpush
 
 </div>
-
