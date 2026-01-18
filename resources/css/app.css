@@ -146,13 +146,13 @@ select:focus[data-flux-control] {
 }
 
 .dark body {
-    background-color: #0f172a;
-    color: #e2e8f0;
+    background-color: #030303;
+    color: #f8fafc;
 }
 
 .dark header {
-    background-color: rgba(15, 23, 42, 0.8);
-    color: #e2e8f0;
+    background-color: rgba(0, 0, 0, 0.95);
+    color: #f8fafc;
 }
 
 .dark nav a {
@@ -160,48 +160,48 @@ select:focus[data-flux-control] {
 }
 
 .dark .bg-white {
-    background-color: #0f172a !important;
+    background-color: #040404 !important;
 }
 
 .dark .bg-white\/95 {
-    background-color: rgba(15, 23, 42, 0.95) !important;
+    background-color: rgba(0, 0, 0, 0.95) !important;
 }
 
 .dark .bg-white\/90 {
-    background-color: rgba(15, 23, 42, 0.9) !important;
+    background-color: rgba(0, 0, 0, 0.9) !important;
 }
 
 .dark .bg-white\/80 {
-    background-color: rgba(15, 23, 42, 0.8) !important;
+    background-color: rgba(0, 0, 0, 0.8) !important;
 }
 
 .dark .bg-white\/70 {
-    background-color: rgba(15, 23, 42, 0.7) !important;
+    background-color: rgba(0, 0, 0, 0.7) !important;
 }
 
 .dark .bg-white\/60 {
-    background-color: rgba(15, 23, 42, 0.6) !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
 }
 
 .dark .bg-white\/50 {
-    background-color: rgba(15, 23, 42, 0.5) !important;
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }
 
 .dark .bg-gray-50,
 .dark .bg-slate-50 {
-    background-color: #0b1428 !important;
+    background-color: #050505 !important;
 }
 
 .dark .bg-slate-50\/60 {
-    background-color: rgba(15, 23, 42, 0.6) !important;
+    background-color: rgba(0, 0, 0, 0.6) !important;
 }
 
 .dark .bg-zinc-50 {
-    background-color: #0b1428 !important;
+    background-color: #050505 !important;
 }
 
 .dark .bg-zinc-100 {
-    background-color: #111827 !important;
+    background-color: #0a0a0a !important;
 }
 
 .dark .text-gray-900,
@@ -232,17 +232,17 @@ select:focus[data-flux-control] {
 }
 
 .dark .border-gray-200 {
-    border-color: #1e293b !important;
+    border-color: #111111 !important;
 }
 
 .dark .border-slate-100,
 .dark .border-slate-200,
 .dark .border-zinc-200 {
-    border-color: #1e293b !important;
+    border-color: #111111 !important;
 }
 
 .dark .border-zinc-200\/70 {
-    border-color: rgba(30, 41, 59, 0.7) !important;
+    border-color: rgba(17, 17, 17, 0.7) !important;
 }
 
 .dark .shadow-lg,
@@ -341,4 +341,3 @@ select:focus[data-flux-control] {
         transform: translateX(0);
     }
 }
-
