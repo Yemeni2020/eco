@@ -124,66 +124,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const iconClose = document.getElementById('mobileMenuIconClose');
     const mobileSearchButton = document.getElementById('mobileSearchButton');
     const mobileSearchBar = document.getElementById('mobileSearchBar');
-    const themeToggles = document.querySelectorAll('[data-theme-toggle]');
-    const themeToggleButton = document.getElementById('themeToggleButton');
-    const themeIconSun = document.getElementById('themeIconSun');
-    const themeIconMoon = document.getElementById('themeIconMoon');
-    const root = document.documentElement;
-
-    // Theme
-    const applyTheme = (theme) => {
-        root.dataset.theme = theme;
-        if (theme === 'dark') {
-            root.classList.add('dark');
-            themeToggles.forEach((toggle) => {
-                toggle.checked = true;
-            });
-            if (themeIconSun && themeIconMoon) {
-                themeIconSun.classList.add('hidden');
-                themeIconMoon.classList.remove('hidden');
-            }
-        } else {
-            root.classList.remove('dark');
-            themeToggles.forEach((toggle) => {
-                toggle.checked = false;
-            });
-            if (themeIconSun && themeIconMoon) {
-                themeIconSun.classList.remove('hidden');
-                themeIconMoon.classList.add('hidden');
-            }
-        }
-    };
-    window.applyTheme = applyTheme;
-    window.setTheme = (theme) => {
-        localStorage.setItem('theme', theme);
-        applyTheme(theme);
-    };
-    const storedTheme = localStorage.getItem('theme');
-    applyTheme(storedTheme || 'light');
-    themeToggles.forEach((toggle) => {
-        toggle.addEventListener('change', (e) => {
-            const next = e.target.checked ? 'dark' : 'light';
-            localStorage.setItem('theme', next);
-            applyTheme(next);
-        });
-    });
-    if (themeToggleButton) {
-        themeToggleButton.addEventListener('click', () => {
-            const next = root.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem('theme', next);
-            applyTheme(next);
-        });
-    }
 
     // Let Livewire handle toggling if available.
     if (cartButton) {
         cartButton.addEventListener(
             'click',
-            (e) => {
-                e.preventDefault();
-                if (window.Livewire) {
-                    window.Livewire.dispatch('open-cart');
-                }
+            () => {
+                cartButton.blur();
             },
             { passive: true }
         );

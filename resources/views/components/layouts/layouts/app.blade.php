@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Otex</title>
     @vite('resources/css/app.css')
     @livewireStyles
@@ -15,7 +16,7 @@
     </script>
 </head>
 
-<body dir="{{ $htmlDir ?? 'ltr' }}" class="bg-gray-100 text-gray-900 min-h-screen {{ ($htmlDir ?? 'ltr') === 'rtl' ? 'not-italic' : '' }}">
+<body dir="{{ $htmlDir ?? 'ltr' }}" class="bg-gray-100 text-gray-900 {{ ($htmlDir ?? 'ltr') === 'rtl' ? 'not-italic' : '' }}">
     <div id="pageLoader" class="fixed inset-0 z-[9999] flex min-h-screen items-center justify-center bg-[#f5f9ff]">
         <div class="flex flex-col items-center gap-6">
             <div class="relative h-16 w-16">
@@ -28,15 +29,17 @@
         </div>
     </div>
 
-    @include('partials.top-bar')
-    
-    <x-navbar />
-    <main class="bg-white" style="padding-top: var(--header-stack-height, 0px);">
+    <div class="flex min-h-screen flex-col">
+        @include('partials.top-bar')
+
+        <x-navbar />
+        <main class="flex-1 bg-white" style="padding-top: var(--header-stack-height, 0px);">
         @yield('content')
         {{ $slot ?? '' }}
-    </main>
+        </main>
 
-    @include('partials.footer')
+        @include('partials.footer')
+    </div>
 
     <!-- WhatsApp (mobile) -->
     <a href="https://wa.me/966000000000" aria-label="Chat on WhatsApp"
@@ -73,453 +76,518 @@
     @livewireScripts
     @stack('scripts')
 <script>
+    /**
+ * App UI Script (clean + guarded)
+ * - Header/topbar offset + hide on scroll
+ * - Theme (single source of truth)
+ * - Cart open (Livewire dispatch) + close (CSS toggles)
+ * - Add-to-cart feedback + wishlist toggle
+ * - Password helpers (settings)
+ * - Mobile menu + mobile search
+ * - Scroll-to-top progress button
+ * - Toast notifications (window dispatchEvent(new CustomEvent('notify',{detail:{message:".."}})))
+ * - Livewire infinite scroll helper
+ *
+ * NOTE:
+ * 1) Remove your extra duplicate theme script (the one using #toggle) — this file already handles theme.
+ * 2) Do NOT silence console globally in production. Keep logs for debugging.
+ */
 
-window.addEventListener('load', () => {
-    const loader = document.getElementById('pageLoader');
-    if (!loader) return;
-    setTimeout(() => loader.classList.add('hidden'), 800);
-});
+(() => {
+  // ---------- Utilities ----------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-document.addEventListener('DOMContentLoaded', () => {
-    const header = document.getElementById('siteHeader');
-    const topbar = document.getElementById('siteTopbar');
+  const raf = (fn) => requestAnimationFrame(fn);
+  const on = (el, evt, handler, opts) => el && el.addEventListener(evt, handler, opts);
+  const isSmall = () => window.innerWidth < 640;
+
+  // ---------- Header / Topbar offset ----------
+  const initHeaderOffset = () => {
+    const header = $('#siteHeader');
+    const topbar = $('#siteTopbar');
+    if (!header && !topbar) return;
+
     const setHeaderOffset = () => {
-        const topbarHeight = topbar && !topbar.classList.contains('topbar-hidden') ? topbar.offsetHeight : 0;
-        const headerHeight = header ? header.offsetHeight : 0;
-        document.documentElement.style.setProperty('--topbar-height', `${topbarHeight}px`);
-        document.documentElement.style.setProperty('--header-stack-height', `${topbarHeight + headerHeight}px`);
+      const topbarHeight = topbar && !topbar.classList.contains('topbar-hidden') ? topbar.offsetHeight : 0;
+      const headerHeight = header ? header.offsetHeight : 0;
+      document.documentElement.style.setProperty('--topbar-height', `${topbarHeight}px`);
+      document.documentElement.style.setProperty('--header-stack-height', `${topbarHeight + headerHeight}px`);
     };
+
     setHeaderOffset();
-    window.addEventListener('resize', setHeaderOffset);
+    on(window, 'resize', setHeaderOffset);
+
     if (topbar) {
-        let lastScrollY = window.pageYOffset;
-        const handleScroll = () => {
-            const currentScrollY = window.pageYOffset;
-            const scrollingDown = currentScrollY > lastScrollY;
-            if (currentScrollY <= 10) {
-                topbar.classList.remove('topbar-hidden');
-            } else if (scrollingDown) {
-                topbar.classList.add('topbar-hidden');
-            } else {
-                topbar.classList.remove('topbar-hidden');
-            }
-            lastScrollY = currentScrollY;
-            setHeaderOffset();
-        };
-        handleScroll();
-        window.addEventListener('scroll', handleScroll, { passive: true });
+      let lastY = window.pageYOffset || 0;
+
+      const handleScroll = () => {
+        const y = window.pageYOffset || 0;
+        const down = y > lastY;
+
+        if (y <= 10) topbar.classList.remove('topbar-hidden');
+        else if (down) topbar.classList.add('topbar-hidden');
+        else topbar.classList.remove('topbar-hidden');
+
+        lastY = y;
+        setHeaderOffset();
+      };
+
+      handleScroll();
+      on(window, 'scroll', handleScroll, { passive: true });
     }
+  };
 
-    const cartButton = document.getElementById('cartButton');
-    const cartSidebar = document.getElementById('cartSidebar');
-    const cartBackdrop = document.getElementById('cartBackdrop');
-    const closeCart = document.getElementById('closeCart');
-    const mobileMenuButton = document.getElementById('mobileMenuButton');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const iconOpen = document.getElementById('mobileMenuIconOpen');
-    const iconClose = document.getElementById('mobileMenuIconClose');
-    const mobileSearchButton = document.getElementById('mobileSearchButton');
-    const mobileSearchBar = document.getElementById('mobileSearchBar');
-    const themeToggles = document.querySelectorAll('[data-theme-toggle]');
-    const themeToggleButton = document.getElementById('themeToggleButton');
-    const themeIconSun = document.getElementById('themeIconSun');
-    const themeIconMoon = document.getElementById('themeIconMoon');
-    const root = document.documentElement;
+  // ---------- Cart ----------
+  const initCart = () => {
+    const cartSidebar = $('#cartSidebar');
+    const cartBackdrop = $('#cartBackdrop');
+    const closeCart = $('#closeCart');
 
-    // Theme
-    const applyTheme = (theme) => {
-        root.dataset.theme = theme;
-        if (theme === 'dark') {
-            root.classList.add('dark');
-            themeToggles.forEach((toggle) => {
-                toggle.checked = true;
-            });
-            if (themeIconSun && themeIconMoon) {
-                themeIconSun.classList.add('hidden');
-                themeIconMoon.classList.remove('hidden');
-            }
-        } else {
-            root.classList.remove('dark');
-            themeToggles.forEach((toggle) => {
-                toggle.checked = false;
-            });
-            if (themeIconSun && themeIconMoon) {
-                themeIconSun.classList.remove('hidden');
-                themeIconMoon.classList.add('hidden');
-            }
-        }
+    if (!cartSidebar) return;
+
+    const close = () => {
+      cartSidebar.classList.add('translate-x-full');
+      if (cartBackdrop) cartBackdrop.classList.add('hidden');
     };
-    window.applyTheme = applyTheme;
-    window.setTheme = (theme) => {
-        localStorage.setItem('theme', theme);
-        applyTheme(theme);
-    };
-    const storedTheme = localStorage.getItem('theme');
-    applyTheme(storedTheme || 'light');
-    themeToggles.forEach((toggle) => {
-        toggle.addEventListener('change', (e) => {
-            const next = e.target.checked ? 'dark' : 'light';
-            localStorage.setItem('theme', next);
-            applyTheme(next);
-        });
+
+    on(closeCart, 'click', (e) => { e.preventDefault(); close(); });
+    on(cartBackdrop, 'click', close, { passive: true });
+  };
+
+  const updateCartBadges = (count) => {
+    const normalized = Number(count) || 0;
+    $$('[data-cart-count]').forEach((badge) => {
+      badge.textContent = normalized;
+      badge.classList.toggle('hidden', normalized <= 0);
+      badge.setAttribute('aria-hidden', normalized <= 0 ? 'true' : 'false');
     });
-    if (themeToggleButton) {
-        themeToggleButton.addEventListener('click', () => {
-            const next = root.classList.contains('dark') ? 'light' : 'dark';
-            localStorage.setItem('theme', next);
-            applyTheme(next);
-        });
+  };
+
+  const showCartFeedback = (button) => {
+    const cartIcon = $('[data-cart-icon]', button);
+    const checkIcon = $('[data-check-icon]', button);
+    if (!cartIcon || !checkIcon) return;
+
+    cartIcon.classList.add('hidden');
+    checkIcon.classList.remove('hidden');
+
+    if (button._cartFeedbackTimer) clearTimeout(button._cartFeedbackTimer);
+    button._cartFeedbackTimer = setTimeout(() => {
+      cartIcon.classList.remove('hidden');
+      checkIcon.classList.add('hidden');
+    }, 1400);
+  };
+
+  const initRealtimeAddToCart = () => {
+    const cartAddUrl = @json(route('cart.items.store', ['locale' => app()->getLocale()]));
+    const successMessage = @json(__('Item added to cart.'));
+    const failureMessage = @json(__('Unable to add item to cart.'));
+
+    if (!cartAddUrl) {
+      return;
     }
 
-    // Let Livewire handle toggling if available.
-    if (cartButton) {
-        cartButton.addEventListener(
-            'click',
-            (e) => {
-                e.preventDefault();
-                if (window.Livewire) {
-                    window.Livewire.dispatch('open-cart');
-                }
-            },
-            { passive: true }
+    const getCsrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+
+    const handler = async (event) => {
+      const button = event.target.closest?.('[data-add-to-cart]');
+      if (!button) return;
+      if (button._isAdding) return;
+
+      const form = button.closest('form');
+      const productId = button.dataset.productId ?? form?.querySelector('[name="product_id"]')?.value;
+
+      if (!productId) {
+        console.warn('Add-to-cart button is missing a product ID.');
+        return;
+      }
+
+      const qtyValue = button.dataset.qty ?? form?.querySelector('[name="qty"]')?.value ?? '1';
+      const quantity = Math.max(1, parseInt(qtyValue, 10) || 1);
+
+      const originalDisabled = button.disabled;
+      button._isAdding = true;
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+
+      try {
+        const response = await fetch(cartAddUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+            'X-CSRF-TOKEN': getCsrfToken(),
+          },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            product_id: productId,
+            qty: quantity,
+          }),
+        });
+
+        if (!response.ok) {
+          const payload = await response.json().catch(() => null);
+          throw new Error(payload?.message || failureMessage);
+        }
+
+        const payload = await response.json();
+
+        updateCartBadges(payload.cart_count ?? 0);
+        window.dispatchEvent(new CustomEvent('cart:updated', { detail: payload }));
+        window.Livewire?.emit('cartUpdated');
+        window.dispatchEvent(
+          new CustomEvent('notify', {
+            detail: { message: payload.message ?? successMessage },
+          }),
         );
-    }
 
-    // Cart toggles (guarded so other UI still works if cart not on the page)
-    if (cartSidebar && closeCart) {
-        const close = () => {
-            cartSidebar.classList.add('translate-x-full');
-            if (cartBackdrop) cartBackdrop.classList.add('hidden');
-        };
-
-        closeCart.addEventListener('click', close, { passive: true });
-        if (cartBackdrop) {
-            cartBackdrop.addEventListener('click', close, { passive: true });
-        }
-    }
-
-    const handleAddToCartFeedback = (event) => {
-        const button = event.target.closest('[data-add-to-cart]');
-        if (!button) return;
-        const cartIcon = button.querySelector('[data-cart-icon]');
-        const checkIcon = button.querySelector('[data-check-icon]');
-        if (!cartIcon || !checkIcon) return;
-
-        cartIcon.classList.add('hidden');
-        checkIcon.classList.remove('hidden');
-
-        if (button._cartFeedbackTimer) {
-            clearTimeout(button._cartFeedbackTimer);
-        }
-        button._cartFeedbackTimer = setTimeout(() => {
-            cartIcon.classList.remove('hidden');
-            checkIcon.classList.add('hidden');
-        }, 1400);
+        showCartFeedback(button);
+      } catch (error) {
+        window.dispatchEvent(
+          new CustomEvent('notify', {
+            detail: { message: error instanceof Error ? error.message : failureMessage },
+          }),
+        );
+      } finally {
+        button._isAdding = false;
+        button.disabled = originalDisabled;
+        button.removeAttribute('aria-busy');
+      }
     };
 
-    document.addEventListener('click', handleAddToCartFeedback);
+    on(document, 'click', handler);
 
-    const handleWishlistToggle = (event) => {
-        const button = event.target.closest('[data-wishlist]');
-        if (!button) return;
+    document.addEventListener('cart:updated', (event) => {
+      const count = event.detail?.cart_count;
+      if (count !== undefined) {
+        updateCartBadges(count);
+      }
+    });
+  };
 
-        const icon = button.querySelector('svg');
-        const isActive = button.getAttribute('aria-pressed') === 'true';
-        const nextActive = !isActive;
-
-        button.setAttribute('aria-pressed', nextActive ? 'true' : 'false');
-        button.classList.toggle('text-red-500', nextActive);
-        button.classList.toggle('text-slate-700', !nextActive);
-
-        if (icon) {
-            icon.classList.toggle('fill-current', nextActive);
-        }
-    };
-
-    document.addEventListener('click', handleWishlistToggle);
-
-    // Password UI (settings page)
-    window.togglePassword = (button) => {
-        const field = button?.closest?.('.password-field');
-        const target = field ? field.querySelector('input') : null;
-        if (!target) return;
-        const isPassword = target.getAttribute('type') === 'password';
-        target.setAttribute('type', isPassword ? 'text' : 'password');
-        button.textContent = isPassword ? 'Hide' : 'Show';
-        button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
-    };
-
-    window.updatePasswordStrength = () => {
-        const newPassword = document.getElementById('newPassword');
-        const confirmPassword = document.getElementById('confirmPassword');
-        const strengthLabel = document.getElementById('passwordStrengthLabel');
-        const strengthBar = document.getElementById('passwordStrengthBar');
-        const matchHint = document.getElementById('passwordMatchHint');
-        const updateButton = document.getElementById('updatePasswordButton');
-        const ruleItems = document.querySelectorAll('#passwordRules [data-rule]');
-
-        if (!newPassword || !confirmPassword || !strengthLabel || !strengthBar || !matchHint || !updateButton) {
-            return;
-        }
-
-        const value = newPassword.value || '';
-        const rules = {
-            length: value.length >= 12,
-            case: /[a-z]/.test(value) && /[A-Z]/.test(value),
-            number: /[0-9]/.test(value),
-            symbol: /[^A-Za-z0-9]/.test(value),
-        };
-        const passedCount = Object.values(rules).filter(Boolean).length;
-        const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
-        const colors = ['bg-rose-500', 'bg-amber-500', 'bg-yellow-500', 'bg-lime-500', 'bg-emerald-500'];
-        const widths = ['w-1/5', 'w-2/5', 'w-3/5', 'w-4/5', 'w-full'];
-        const idx = Math.min(passedCount, 4);
-
-        strengthBar.className = 'h-2 rounded-full transition-all';
-        if (!value.length) {
-            strengthLabel.textContent = '-';
-            strengthBar.classList.add('bg-slate-400', 'w-0');
-        } else {
-            strengthLabel.textContent = labels[idx];
-            strengthBar.classList.add(colors[idx], widths[idx]);
-        }
-
-        ruleItems.forEach((item) => {
-            const key = item.getAttribute('data-rule');
-            const passed = !!rules[key];
-            item.classList.toggle('text-emerald-600', passed);
-            item.classList.toggle('text-slate-600', !passed);
-        });
-
-        const matches = confirmPassword.value.length > 0 && confirmPassword.value === value;
-        if (!confirmPassword.value.length) {
-            matchHint.textContent = '-';
-            matchHint.classList.remove('text-emerald-600', 'text-rose-600');
-        } else if (matches) {
-            matchHint.textContent = 'Passwords match';
-            matchHint.classList.add('text-emerald-600');
-            matchHint.classList.remove('text-rose-600');
-        } else {
-            matchHint.textContent = 'Passwords do not match';
-            matchHint.classList.add('text-rose-600');
-            matchHint.classList.remove('text-emerald-600');
-        }
-
-        const valid = passedCount >= 4 && matches;
-        updateButton.disabled = !valid;
-        updateButton.classList.toggle('opacity-60', !valid);
-        updateButton.classList.toggle('cursor-not-allowed', !valid);
-    };
-
-    document.addEventListener('input', (event) => {
-        if (event.target?.id === 'newPassword' || event.target?.id === 'confirmPassword') {
-            window.updatePasswordStrength();
-        }
+  // ---------- Add-to-cart feedback ----------
+  const initAddToCartFeedback = () => {
+    document.addEventListener('livewire:updated', () => {
+      const button = document.activeElement?.closest?.('[data-add-to-cart]');
+      if (button) showCartFeedback(button);
     });
 
-    window.updatePasswordStrength();
+    on(document, 'click', (event) => {
+      const button = event.target.closest?.('[data-add-to-cart]');
+      if (button) showCartFeedback(button);
+    });
+  };
 
-    if (mobileMenuButton && mobileMenu) {
-        const openMenu = () => {
-            mobileMenu.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                mobileMenu.classList.add('mobile-menu-open');
-                mobileMenu.classList.remove('pointer-events-none');
-            });
-            if (iconOpen && iconClose) {
-                iconOpen.classList.add('hidden');
-                iconClose.classList.remove('hidden');
-            }
-        };
-        const closeMenu = () => {
-            mobileMenu.classList.remove('mobile-menu-open');
-            mobileMenu.classList.add('pointer-events-none');
-            setTimeout(() => mobileMenu.classList.add('hidden'), 180);
-            if (iconOpen && iconClose) {
-                iconOpen.classList.remove('hidden');
-                iconClose.classList.add('hidden');
-            }
-        };
-        let menuOpen = false;
-        mobileMenuButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            menuOpen ? closeMenu() : openMenu();
-            menuOpen = !menuOpen;
-        });
-    }
+  // ---------- Wishlist toggle ----------
+  const initWishlist = () => {
+    const handler = (event) => {
+      const button = event.target.closest?.('[data-wishlist]');
+      if (!button) return;
 
-    if (mobileSearchButton && mobileSearchBar) {
-        const openSearch = () => {
-            mobileSearchBar.classList.remove('hidden');
-            requestAnimationFrame(() => {
-                mobileSearchBar.classList.add('mobile-menu-open');
-                mobileSearchBar.classList.remove('pointer-events-none');
-            });
-        };
-        const closeSearch = () => {
-            mobileSearchBar.classList.remove('mobile-menu-open');
-            mobileSearchBar.classList.add('pointer-events-none');
-            setTimeout(() => mobileSearchBar.classList.add('hidden'), 180);
-        };
-        let searchOpen = false;
-        mobileSearchButton.addEventListener('click', (e) => {
-            e.preventDefault();
-            searchOpen ? closeSearch() : openSearch();
-            searchOpen = !searchOpen;
-        });
-    }
+      const icon = $('svg', button);
+      const isActive = button.getAttribute('aria-pressed') === 'true';
+      const next = !isActive;
 
-    // Scroll-to-top progress
-    const scrollBtn = document.getElementById('scrollToTop');
-    const scrollPath = document.getElementById('scrollToTopPath');
-    if (scrollBtn && scrollPath) {
-        const pathLength = scrollPath.getTotalLength();
-        scrollPath.style.strokeDasharray = `${pathLength} ${pathLength}`;
-        scrollPath.style.strokeDashoffset = pathLength;
+      button.setAttribute('aria-pressed', next ? 'true' : 'false');
+      button.classList.toggle('text-red-500', next);
+      button.classList.toggle('text-slate-700', !next);
 
-        const updateProgress = () => {
-            if (window.innerWidth < 640) {
-                scrollBtn.classList.add('hidden', 'opacity-0');
-                return;
-            }
-            const scroll = window.pageYOffset;
-            const height = document.documentElement.scrollHeight - window.innerHeight;
-            const progress = pathLength - (scroll * pathLength) / height;
-            scrollPath.style.strokeDashoffset = progress;
-            const show = scroll > 200;
-            scrollBtn.classList.toggle('hidden', !show);
-            scrollBtn.classList.toggle('opacity-0', !show);
-        };
+      if (icon) icon.classList.toggle('fill-current', next);
+    };
 
-        updateProgress();
-        window.addEventListener('scroll', updateProgress, { passive: true });
-        scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-    }
-});
+    on(document, 'click', handler);
+  };
 
-window.addEventListener('notify', (event) => {
-    const list = document.getElementById('toastRegion');
-    if (!list) return;
+  // ---------- Password UI (settings page) ----------
+  const initPasswordUI = () => {
+    window.togglePassword = (button) => {
+      const field = button?.closest?.('.password-field');
+      const target = field ? $('input', field) : null;
+      if (!target) return;
 
-    const message = event.detail?.message || 'Notification';
-    const item = document.createElement('li');
-    item.className =
+      const isPassword = target.getAttribute('type') === 'password';
+      target.setAttribute('type', isPassword ? 'text' : 'password');
+      button.textContent = isPassword ? 'Hide' : 'Show';
+      button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    };
+
+    const update = () => {
+      const newPassword = $('#newPassword');
+      const confirmPassword = $('#confirmPassword');
+      const strengthLabel = $('#passwordStrengthLabel');
+      const strengthBar = $('#passwordStrengthBar');
+      const matchHint = $('#passwordMatchHint');
+      const updateButton = $('#updatePasswordButton');
+      const ruleItems = $$('#passwordRules [data-rule]');
+
+      if (!newPassword || !confirmPassword || !strengthLabel || !strengthBar || !matchHint || !updateButton) return;
+
+      const value = newPassword.value || '';
+      const rules = {
+        length: value.length >= 12,
+        case: /[a-z]/.test(value) && /[A-Z]/.test(value),
+        number: /[0-9]/.test(value),
+        symbol: /[^A-Za-z0-9]/.test(value),
+      };
+
+      const passedCount = Object.values(rules).filter(Boolean).length;
+      const labels = ['Very weak', 'Weak', 'Fair', 'Good', 'Strong'];
+      const colors = ['bg-rose-500', 'bg-amber-500', 'bg-yellow-500', 'bg-lime-500', 'bg-emerald-500'];
+      const widths = ['w-1/5', 'w-2/5', 'w-3/5', 'w-4/5', 'w-full'];
+      const idx = Math.min(passedCount, 4);
+
+      strengthBar.className = 'h-2 rounded-full transition-all';
+
+      if (!value.length) {
+        strengthLabel.textContent = '-';
+        strengthBar.classList.add('bg-slate-400', 'w-0');
+      } else {
+        strengthLabel.textContent = labels[idx];
+        strengthBar.classList.add(colors[idx], widths[idx]);
+      }
+
+      ruleItems.forEach((item) => {
+        const key = item.getAttribute('data-rule');
+        const passed = !!rules[key];
+        item.classList.toggle('text-emerald-600', passed);
+        item.classList.toggle('text-slate-600', !passed);
+      });
+
+      const matches = confirmPassword.value.length > 0 && confirmPassword.value === value;
+
+      if (!confirmPassword.value.length) {
+        matchHint.textContent = '-';
+        matchHint.classList.remove('text-emerald-600', 'text-rose-600');
+      } else if (matches) {
+        matchHint.textContent = 'Passwords match';
+        matchHint.classList.add('text-emerald-600');
+        matchHint.classList.remove('text-rose-600');
+      } else {
+        matchHint.textContent = 'Passwords do not match';
+        matchHint.classList.add('text-rose-600');
+        matchHint.classList.remove('text-emerald-600');
+      }
+
+      const valid = passedCount >= 4 && matches;
+      updateButton.disabled = !valid;
+      updateButton.classList.toggle('opacity-60', !valid);
+      updateButton.classList.toggle('cursor-not-allowed', !valid);
+    };
+
+    window.updatePasswordStrength = update;
+
+    on(document, 'input', (event) => {
+      const id = event.target?.id;
+      if (id === 'newPassword' || id === 'confirmPassword') update();
+    });
+
+    update();
+  };
+
+  // ---------- Mobile menu ----------
+  const initMobileMenu = () => {
+    const btn = $('#mobileMenuButton');
+    const menu = $('#mobileMenu');
+    const iconOpen = $('#mobileMenuIconOpen');
+    const iconClose = $('#mobileMenuIconClose');
+    if (!btn || !menu) return;
+
+    let open = false;
+
+    const openMenu = () => {
+      menu.classList.remove('hidden');
+      raf(() => {
+        menu.classList.add('mobile-menu-open');
+        menu.classList.remove('pointer-events-none');
+      });
+      iconOpen && iconOpen.classList.add('hidden');
+      iconClose && iconClose.classList.remove('hidden');
+      open = true;
+    };
+
+    const closeMenu = () => {
+      menu.classList.remove('mobile-menu-open');
+      menu.classList.add('pointer-events-none');
+      setTimeout(() => menu.classList.add('hidden'), 180);
+      iconOpen && iconOpen.classList.remove('hidden');
+      iconClose && iconClose.classList.add('hidden');
+      open = false;
+    };
+
+    on(btn, 'click', (e) => {
+      e.preventDefault();
+      open ? closeMenu() : openMenu();
+    });
+  };
+
+  // ---------- Mobile search ----------
+  const initMobileSearch = () => {
+    const btn = $('#mobileSearchButton');
+    const bar = $('#mobileSearchBar');
+    if (!btn || !bar) return;
+
+    let open = false;
+
+    const openSearch = () => {
+      bar.classList.remove('hidden');
+      raf(() => {
+        bar.classList.add('mobile-menu-open');
+        bar.classList.remove('pointer-events-none');
+      });
+      open = true;
+    };
+
+    const closeSearch = () => {
+      bar.classList.remove('mobile-menu-open');
+      bar.classList.add('pointer-events-none');
+      setTimeout(() => bar.classList.add('hidden'), 180);
+      open = false;
+    };
+
+    on(btn, 'click', (e) => {
+      e.preventDefault();
+      open ? closeSearch() : openSearch();
+    });
+  };
+
+  // ---------- Scroll-to-top progress ----------
+  const initScrollToTop = () => {
+    const scrollBtn = $('#scrollToTop');
+    const scrollPath = $('#scrollToTopPath');
+    if (!scrollBtn || !scrollPath) return;
+
+    const pathLength = scrollPath.getTotalLength();
+    scrollPath.style.strokeDasharray = `${pathLength} ${pathLength}`;
+    scrollPath.style.strokeDashoffset = pathLength;
+
+    const update = () => {
+      if (isSmall()) {
+        scrollBtn.classList.add('hidden', 'opacity-0');
+        return;
+      }
+
+      const scroll = window.pageYOffset || 0;
+      const height = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = pathLength - (scroll * pathLength) / (height || 1);
+      scrollPath.style.strokeDashoffset = progress;
+
+      const show = scroll > 200;
+      scrollBtn.classList.toggle('hidden', !show);
+      scrollBtn.classList.toggle('opacity-0', !show);
+    };
+
+    update();
+    on(window, 'scroll', update, { passive: true });
+    on(scrollBtn, 'click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  };
+
+  // ---------- Toast notifications ----------
+  const initToasts = () => {
+    on(window, 'notify', (event) => {
+      const list = $('#toastRegion');
+      if (!list) return;
+
+      const message = event.detail?.message || 'Notification';
+
+      const item = document.createElement('li');
+      item.className =
         'pointer-events-auto mb-3 rounded-lg shadow-lg border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 text-slate-800 overflow-hidden';
 
-    const body = document.createElement('div');
-    body.className = 'flex items-start gap-3 px-4 py-3';
-    body.innerHTML = `
+      const body = document.createElement('div');
+      body.className = 'flex items-start gap-3 px-4 py-3';
+      body.innerHTML = `
         <div class="mt-0.5 h-2 w-2 rounded-full bg-blue-500"></div>
         <div class="flex-1 text-sm font-medium text-slate-800">${message}</div>
-        <button type="button" aria-label="Close notification" class="text-slate-500 hover:text-slate-700">?</button>
-    `;
+        <button type="button" aria-label="Close notification" class="text-slate-500 hover:text-slate-700">&times;</button>
+      `;
 
-    const bar = document.createElement('div');
-    bar.className = 'h-1 bg-blue-500 w-full';
-    bar.style.transition = 'width 3s linear';
+      const bar = document.createElement('div');
+      bar.className = 'h-1 bg-blue-500 w-full';
+      bar.style.transition = 'width 3s linear';
 
-    item.appendChild(body);
-    item.appendChild(bar);
-    list.appendChild(item);
+      item.appendChild(body);
+      item.appendChild(bar);
+      list.appendChild(item);
 
-    requestAnimationFrame(() => {
-        bar.style.width = '0%';
-    });
+      raf(() => (bar.style.width = '0%'));
 
-    const remove = () => {
+      const remove = () => {
         item.classList.add('opacity-0', 'transition', 'duration-300');
         setTimeout(() => item.remove(), 300);
-    };
+      };
 
-    body.querySelector('button').addEventListener('click', remove, { once: true });
-    setTimeout(remove, 3000);
-});
+      on($('button', body), 'click', remove, { once: true });
+      setTimeout(remove, 3000);
+    });
+  };
 
-// Silence noisy message events (keeps first-party messages working)
-const shouldBlockMessageEvent = (event) => {
-    if (event?.data?.source === 'react-devtools-content-script') return true;
-    if (!event.origin || !window.location?.origin) return true;
-    return event.origin !== window.location.origin;
-};
+  // ---------- Livewire infinite scroll helper ----------
+  const initInfiniteScroll = () => {
+    document.addEventListener('livewire:init', () => {
+      const attach = () => {
+        $$('[data-infinite-scroll]').forEach((section) => {
+          const sentinel = $('[data-infinite-scroll-sentinel]', section);
+          if (!sentinel || sentinel.dataset.infiniteWatching) return;
 
-window.addEventListener(
-    'message',
-    (event) => {
-        if (shouldBlockMessageEvent(event)) {
-            event.stopImmediatePropagation();
-        }
-    },
-    true
-);
+          const componentEl = section.closest('[wire\\:id]');
+          if (!componentEl) return;
 
-// Quiet console noise globally (leave warnings/errors intact)
-['log', 'info', 'debug'].forEach((fn) => {
-    if (typeof console?.[fn] === 'function') {
-        console[fn] = () => {};
-    }
-});
-</script>
+          const componentId = componentEl.getAttribute('wire:id');
+          const livewireInstance = () => window.Livewire?.find(componentId);
 
-    
-    <script>
-        const toggle = document.getElementById('toggle');
-        const html = document.documentElement;
+          const observer = new IntersectionObserver(
+            (entries) => {
+              entries.forEach((entry) => {
+                if (entry.isIntersecting) livewireInstance()?.call('loadMore');
+              });
+            },
+            { rootMargin: '320px' }
+          );
 
-        if (toggle && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            html.classList.add('dark');
-            toggle.checked = true;
-        }
-
-        if (toggle) {
-            toggle.addEventListener('change', function() {
-                if (this.checked) {
-                    html.classList.add('dark');
-                } else {
-                    html.classList.remove('dark');
-                }
-            });
-        }
-    </script>
-    <script>
-        // Simple Livewire-aware infinite scroll helper.
-        document.addEventListener('livewire:init', () => {
-            const attach = () => {
-                document.querySelectorAll('[data-infinite-scroll]').forEach((section) => {
-                    const sentinel = section.querySelector('[data-infinite-scroll-sentinel]');
-                    if (!sentinel || sentinel.dataset.infiniteWatching) return;
-
-                    const componentEl = section.closest('[wire\\:id]');
-                    if (!componentEl) return;
-
-                    const componentId = componentEl.getAttribute('wire:id');
-                    const livewireInstance = () => window.Livewire?.find(componentId);
-
-                    const observer = new IntersectionObserver((entries) => {
-                        entries.forEach((entry) => {
-                            if (entry.isIntersecting) {
-                                livewireInstance()?.call('loadMore');
-                            }
-                        });
-                    }, {
-                        rootMargin: '320px'
-                    });
-
-                    sentinel.dataset.infiniteWatching = '1';
-                    sentinel._infiniteObserver = observer;
-                    observer.observe(sentinel);
-                });
-            };
-
-            attach();
-
-            // Re-attach after DOM mutations (Livewire morphs).
-            const mo = new MutationObserver(() => attach());
-            mo.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
+          sentinel.dataset.infiniteWatching = '1';
+          sentinel._infiniteObserver = observer;
+          observer.observe(sentinel);
         });
-    </script>
+      };
+
+      attach();
+
+      // re-attach after Livewire morphs
+      const mo = new MutationObserver(() => attach());
+      mo.observe(document.body, { childList: true, subtree: true });
+    });
+  };
+
+  // ---------- Boot ----------
+  document.addEventListener('DOMContentLoaded', () => {
+    initHeaderOffset();
+    initCart();
+    initRealtimeAddToCart();
+    initAddToCartFeedback();
+    initWishlist();
+    initPasswordUI();
+    initMobileMenu();
+    initMobileSearch();
+    initScrollToTop();
+    initToasts();
+    initInfiniteScroll();
+  });
+
+  // ✅ Optional: keep this ONLY if you really need to block noisy extension messages
+  // (I recommend removing it unless you know why it’s needed.)
+  // const shouldBlockMessageEvent = (event) => {
+  //   if (event?.data?.source === 'react-devtools-content-script') return true;
+  //   if (!event.origin || !window.location?.origin) return true;
+  //   return event.origin !== window.location.origin;
+  // };
+  // window.addEventListener('message', (event) => {
+  //   if (shouldBlockMessageEvent(event)) event.stopImmediatePropagation();
+  // }, true);
+
+  // ❌ Removed: global console silencing (bad for debugging + production visibility)
+})();
+</script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 </body>
 

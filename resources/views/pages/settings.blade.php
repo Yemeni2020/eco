@@ -232,20 +232,6 @@
                         </form>
                     </x-card>
 
-                    <x-card id="appearance" data-settings-section="general" class="p-6">
-                        <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">Theme</h2>
-                        <form class="space-y-4">
-                            <label class="flex items-center justify-between rounded-xl bg-slate-100 px-4 py-3 text-sm text-slate-900 dark:bg-slate-900 dark:text-white">
-                                <span class="font-semibold"><span id="themeToggleLabel">Light mode</span></span>
-                                <span class="relative inline-flex h-6 w-11 items-center">
-                                    <input id="themeToggle" type="checkbox" class="peer sr-only" data-theme-toggle>
-                                    <span class="absolute inset-0 rounded-full bg-slate-300 transition peer-checked:bg-slate-700 dark:bg-slate-700 dark:peer-checked:bg-slate-500"></span>
-                                    <span class="absolute left-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-5"></span>
-                                </span>
-                            </label>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Toggle to switch between light and dark mode.</p>
-                        </form>
-                    </x-card>
                 </div>
             </div>
         </section>
@@ -305,47 +291,6 @@
             initSettingsNav();
         }
         document.addEventListener('livewire:navigated', initSettingsNav);
-    </script>
-    <script>
-        const initThemeSettings = () => {
-            const root = document.documentElement;
-            const toggle = document.getElementById('themeToggle');
-            const label = document.getElementById('themeToggleLabel');
-            if (!toggle || !label) return;
-
-            const storedTheme = localStorage.getItem('theme') || 'light';
-            const setTheme = (theme) => {
-                if (typeof window.setTheme === 'function') {
-                    window.setTheme(theme);
-                    return;
-                }
-                localStorage.setItem('theme', theme);
-                root.dataset.theme = theme;
-                if (theme === 'dark') {
-                    root.classList.add('dark');
-                } else {
-                    root.classList.remove('dark');
-                }
-            };
-
-            const syncLabel = (checked) => {
-                label.textContent = checked ? 'Dark mode' : 'Light mode';
-            };
-
-            toggle.checked = storedTheme === 'dark';
-            syncLabel(toggle.checked);
-            toggle.addEventListener('change', () => {
-                setTheme(toggle.checked ? 'dark' : 'light');
-                syncLabel(toggle.checked);
-            });
-        };
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initThemeSettings);
-        } else {
-            initThemeSettings();
-        }
-        document.addEventListener('livewire:navigated', initThemeSettings);
     </script>
     <script>
         const initTwoFactorUI = () => {

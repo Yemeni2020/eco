@@ -18,7 +18,7 @@
             ($active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100');
     };
 
-    $cartCount = count(session('cart', []));
+    $cartCount = $cartCount ?? 0;
 
     $notificationUser = auth()->user();
     $recentNotifications = $notificationUser
@@ -209,21 +209,6 @@
                         <path d="m21 21-4.3-4.3"></path>
                     </svg>
                 </button>
-
-                
-                <button id="themeToggleButton" type="button"
-                    class="p-2 rounded-full hover:bg-black/5 transition-colors text-slate-700">
-                    <svg id="themeIconSun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
-                    </svg>
-                    <svg id="themeIconMoon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke-width="1.5" stroke="currentColor" class="w-5 h-5 hidden">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
-                    </svg>
-                </button>
                 @php
                     $localeOptions = locale_dropdown_items();
                     $currentLocaleVariant = current_locale_variant();
@@ -252,7 +237,7 @@
                     </div>
                 </details>
                 <!-- Desktop Cart -->
-                <button id="cartButton" type="button"
+                <a id="cartButton" href="{{ $routeLocalized('cart') }}"
                     class="hidden md:inline-flex items-center justify-center text-sm font-medium h-10 w-10 relative bg-slate-900/90 hover:bg-blue-600 text-white rounded-full transition-all duration-300 shadow-lg hover:shadow-blue-500/30 backdrop-blur-sm">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -262,11 +247,15 @@
                         <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12">
                         </path>
                     </svg>
-                    @if ($cartCount > 0)
-                        <span
-                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center">{{ $cartCount }}</span>
-                    @endif
-                </button>
+                    <span
+                        data-cart-count
+                        aria-live="polite"
+                        aria-hidden="{{ $cartCount > 0 ? 'false' : 'true' }}"
+                        class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center {{ $cartCount > 0 ? '' : 'hidden' }}"
+                    >
+                        {{ $cartCount }}
+                    </span>
+                </a>
 
                 <div class="dropdown relative hidden lg:block">
                     <button type="button" aria-label="Notifications" data-dropdown-target="desktop-notifications-menu"
@@ -542,7 +531,7 @@
                 class="nav-fab flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white text-2xl leading-none shadow-lg ring-4 ring-white/80 dark:ring-slate-900/90">+</span>
             <span class="sr-only">Add</span>
         </button>
-        <button type="button" data-bottom-action="cart"
+        <a href="{{ $routeLocalized('cart') }}" data-bottom-action="cart"
             class="nav-press group relative flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                 stroke="currentColor"
@@ -550,12 +539,16 @@
                 <path stroke-linecap="round" stroke-linejoin="round"
                     d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 0 0-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 0 0-16.536-1.84M7.5 14.25 5.106 5.272M6 20.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Zm12.75 0a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
             </svg>
-            @if ($cartCount > 0)
-                <span
-                    class="absolute top-1 right-3 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center ring-2 ring-white/80 dark:ring-slate-900/90">{{ $cartCount }}</span>
-            @endif
+            <span
+                data-cart-count
+                aria-live="polite"
+                aria-hidden="{{ $cartCount > 0 ? 'false' : 'true' }}"
+                class="absolute top-1 right-3 bg-red-500 text-white text-[10px] rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center ring-2 ring-white/80 dark:ring-slate-900/90 {{ $cartCount > 0 ? '' : 'hidden' }}"
+            >
+                {{ $cartCount }}
+            </span>
             {{ __('site.nav.cart') }}
-        </button>
+        </a>
         <a href="{{ auth()->check() ? $routeLocalized('account.dashboard') : route('login') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomProfileActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
@@ -716,11 +709,7 @@
             });
 
             if (cartBtn) {
-                cartBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    if (window.Livewire) {
-                        window.Livewire.dispatch('open-cart');
-                    }
+                cartBtn.addEventListener('click', () => {
                     bounce(cartBtn);
                 }, {
                     passive: true

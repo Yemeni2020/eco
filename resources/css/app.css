@@ -272,30 +272,6 @@ select:focus[data-flux-control] {
     border-color: #e2e8f0 !important;
 }
 
-[data-theme="dark"] .top-bar {
-    background-color: rgba(0, 0, 0, 0.95) !important;
-    border-color: #111111 !important;
-}
-
-.dark #siteTopbar {
-    background-color: #030303 !important;
-    border-color: #111111 !important;
-}
-
-.dark #siteTopbar span,
-.dark #siteTopbar a {
-    color: #e2e8f0 !important;
-}
-
-.dark #siteHeader {
-    background-color: #030303 !important;
-    color: #f8fafc !important;
-}
-
-.dark #siteHeader a,
-.dark #siteHeader button {
-    color: #f8fafc !important;
-}
 
 .nav-press {
     transition: transform 120ms ease, filter 120ms ease;
