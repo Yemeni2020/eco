@@ -69,7 +69,7 @@ select:focus[data-flux-control] {
 } */
 
 @import 'tailwindcss';
-@custom-variant dark (&:where(.dark, .dark *));
+/* @custom-variant dark (&:where(.dark, .dark *)); */
 /* @tailwind '';
 @tailwind 'components';
 @tailwind utilities; */
@@ -131,9 +131,9 @@ select:focus[data-flux-control] {
     color-scheme: light;
 }
 
-.dark {
+/* .dark {
     color-scheme: dark;
-}
+} */
 
 .mobile-menu-transition {
     transition: opacity 180ms ease, transform 180ms ease;
@@ -145,17 +145,17 @@ select:focus[data-flux-control] {
     pointer-events: auto !important;
 }
 
-.dark body {
+/* .dark body {
     background-color: #030303;
     color: #f8fafc;
-}
+} */
 
-.dark header {
+/* .dark header {
     background-color: rgba(0, 0, 0, 0.95);
     color: #f8fafc;
-}
+} */
 
-.dark nav a {
+/* .dark nav a {
     color: #e2e8f0;
 }
 
@@ -273,8 +273,28 @@ select:focus[data-flux-control] {
 }
 
 [data-theme="dark"] .top-bar {
-    background-color: rgba(15, 23, 42, 0.95) !important;
-    border-color: #1e293b !important;
+    background-color: rgba(0, 0, 0, 0.95) !important;
+    border-color: #111111 !important;
+}
+
+.dark #siteTopbar {
+    background-color: #030303 !important;
+    border-color: #111111 !important;
+}
+
+.dark #siteTopbar span,
+.dark #siteTopbar a {
+    color: #e2e8f0 !important;
+}
+
+.dark #siteHeader {
+    background-color: #030303 !important;
+    color: #f8fafc !important;
+}
+
+.dark #siteHeader a,
+.dark #siteHeader button {
+    color: #f8fafc !important;
 }
 
 .nav-press {
