@@ -10,6 +10,7 @@ use App\Policies\CartPolicy;
 use App\Policies\OrderPolicy;
 use App\Services\Sms\LogSmsSender;
 use App\Services\Sms\SmsSender;
+use App\Services\SiteContent;
 use App\Domain\Cart\Actions\GetCartAction;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
                 default => new LogSmsSender(config('sms.drivers.log.channel', 'stack')),
             };
         });
+
+        $this->app->singleton(SiteContent::class);
     }
 
     /**
@@ -42,7 +45,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Cart::class, CartPolicy::class);
         Gate::policy(Address::class, AddressPolicy::class);
 
-        View::composer('partials.nav-bar', function ($view) {
+        View::composer(['partials.nav-bar', 'partials.top-bar', 'partials.footer'], function ($view) {
             $cartCount = 0;
 
             try {
@@ -53,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             $view->with('cartCount', $cartCount);
+            $view->with('siteContent', app(SiteContent::class));
         });
 
         View::addLocation(resource_path('views/admin'));

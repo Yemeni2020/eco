@@ -4,9 +4,12 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Payments\Repositories\PaymentGatewaySettingsRepository;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RolePermissionRequest;
 use App\Http\Requests\Admin\SecuritySettingRequest;
 use App\Http\Requests\Admin\SeoSettingRequest;
 use App\Http\Requests\Admin\UpdatePaymentGatewaysRequest;
+use App\Models\Permission;
+use App\Models\Role;
 use App\Models\SecuritySetting;
 use App\Models\SeoSetting;
 use Illuminate\Http\RedirectResponse;
@@ -37,12 +40,17 @@ class SettingsController extends Controller
         $gatewaySettings = collect($gatewayDefinitions)
             ->mapWithKeys(fn ($definition, $gateway) => [$gateway => $this->gatewaySettingsRepository->get($gateway)]);
 
+        $roles = Role::with('permissions')->get();
+        $permissions = Permission::orderBy('name')->get();
+
         return view('admin.settings.index', [
             'seoSetting' => $seoSetting,
             'securitySetting' => $securitySetting,
             'paymentGatewayDefinitions' => $gatewayDefinitions,
             'paymentGatewaySettings' => $gatewaySettings,
             'activePaymentGateway' => $gatewaySettings->first(fn ($setting) => $setting->is_enabled)?->gateway ?? array_key_first($gatewayDefinitions),
+            'roles' => $roles,
+            'permissions' => $permissions,
         ]);
     }
 
@@ -108,5 +116,23 @@ class SettingsController extends Controller
         $this->gatewaySettingsRepository->updateFromPayload($payload);
 
         return back()->with('payment_settings_status', 'Payment gateway settings saved.');
+    }
+
+    public function updateRoles(RolePermissionRequest $request): RedirectResponse
+    {
+        $roles = Role::all()->keyBy('slug');
+
+        foreach ($request->input('roles', []) as $slug => $payload) {
+            $role = $roles[$slug] ?? null;
+            if (! $role) {
+                continue;
+            }
+
+            $permissionSlugs = collect($payload['permissions'] ?? [])->filter()->values()->all();
+            $permissionIds = Permission::whereIn('slug', $permissionSlugs)->pluck('id')->all();
+            $role->permissions()->sync($permissionIds);
+        }
+
+        return back()->with('roles_status', 'Role permissions updated.');
     }
 }

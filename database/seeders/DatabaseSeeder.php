@@ -9,6 +9,8 @@ use Database\Seeders\AttributeDefinitionSeeder;
 use Database\Seeders\ProductSeeder;
 use Database\Seeders\ColorSeeder;
 use Database\Seeders\DemoCatalogSeeder;
+use Database\Seeders\RolesAndPermissionsSeeder;
+use Database\Seeders\SiteSettingsSeeder;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -20,12 +22,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $defaultCustomerPhone = env('DEMO_CUSTOMER_PHONE', '+966500000000');
+
         Customer::firstOrCreate(
             ['email' => 'demo@example.com'],
             [
                 'name' => 'Demo Customer',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
+                'phone' => $defaultCustomerPhone,
+                'phone_normalized' => $defaultCustomerPhone,
             ]
         );
 
@@ -45,7 +51,9 @@ class DatabaseSeeder extends Seeder
             $this->call(DemoCatalogSeeder::class);
         }
 
+        $this->call(RolesAndPermissionsSeeder::class);
         $this->call(AdminSeeder::class);
         $this->call(CustomerSeeder::class);
+        $this->call(SiteSettingsSeeder::class);
     }
 }

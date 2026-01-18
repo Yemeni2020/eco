@@ -1,3 +1,10 @@
+@php
+    $siteContent = $siteContent ?? app(\App\Services\SiteContent::class);
+    $topbarConfig = $siteContent->topbar();
+    $topbarLabel = $topbarConfig['label'] ?? 'Breaking';
+    $topbarItems = $topbarConfig['items'] ?? [];
+    $tickerItems = $topbarItems ? array_merge($topbarItems, $topbarItems) : [];
+@endphp
 
 <div id="siteTopbar" class="block bg-white border-b border-gray-200 topbar-transition dark:bg-black dark:border-gray-800"
     style="position: fixed; top: 0; left: 0; right: 0; z-index: 60;">
@@ -7,7 +14,7 @@
             <!-- Label -->
             <span
                 class="shrink-0 rounded-full bg-black px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white">
-                Breaking
+                {{ $topbarLabel }}
             </span>
 
             <!-- Viewport -->
@@ -15,34 +22,11 @@
 
                 <!-- Track -->
                 <div class="ticker-track flex w-max items-center gap-10 whitespace-nowrap will-change-transform">
-
-                    <!-- Set 1 -->
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        🔥 Markets rally as inflation cools
-                    </a>
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        💡 New AI model boosts developer productivity
-                    </a>
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        🌦️ Weather update: clear skies this week
-                    </a>
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        ⚽ Championship match ends in dramatic draw
-                    </a>
-
-                    <!-- Set 2 (duplicate for seamless loop) -->
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        🔥 Markets rally as inflation cools
-                    </a>
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        💡 New AI model boosts developer productivity
-                    </a>
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        🌦️ Weather update: clear skies this week
-                    </a>
-                    <a href="#" class="text-sm font-medium hover:underline">
-                        ⚽ Championship match ends in dramatic draw
-                    </a>
+                    @foreach ($tickerItems as $item)
+                        <a href="{{ $item['url'] ?? '#' }}" class="text-sm font-medium hover:underline">
+                            {{ $item['text'] ?? '' }}
+                        </a>
+                    @endforeach
                 </div>
 
                 <!-- Fade edges -->

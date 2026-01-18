@@ -70,6 +70,8 @@ Route::middleware(['web', 'setLocale'])->group(function () {
             ->name('admin.settings.seo');
         Route::post('admin/settings/security', [SettingsController::class, 'updateSecurity'])
             ->name('admin.settings.security');
+        Route::post('admin/settings/roles', [SettingsController::class, 'updateRoles'])
+            ->name('admin.settings.roles');
         Route::post('admin/settings/payments', [SettingsController::class, 'updatePayments'])
             ->name('admin.settings.payments');
     });

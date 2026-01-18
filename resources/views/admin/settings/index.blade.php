@@ -67,6 +67,10 @@
                 {{-- Store --}}
                 <div class="tab-panel hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900" data-tab="store">
                     <div class="flex flex-col gap-4">
+                        @php
+                            $roles = $roles ?? collect();
+                            $permissions = $permissions ?? collect();
+                        @endphp
                         <flux:heading size="lg" level="2">Store profile</flux:heading>
 
                         <flux:input name="store_name" label="Store name" value="Otex Home" />
@@ -355,7 +359,65 @@
                                 </div>
                             </div>
                         </div>
+
+                        <div class="rounded-2xl border border-zinc-200 bg-white p-4">
+                            <form action="{{ route('admin.settings.roles') }}" method="POST" class="space-y-4">
+                                @csrf
+
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-700">Roles & permissions</h3>
+                                        <p class="text-xs text-slate-500">Control what each role can do in the admin area.</p>
+                                    </div>
+                                    <flux:button variant="primary" type="submit">
+                                        Save roles
+                                    </flux:button>
+                                </div>
+
+                                @if(session('roles_status'))
+                                    <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
+                                        {{ session('roles_status') }}
+                                    </div>
+                                @endif
+
+                                <div class="grid gap-4 lg:grid-cols-2">
+                                    @foreach($roles as $role)
+                                        @php
+                                            $assignedPermissions = old("roles.{$role->slug}.permissions", $role->permissions->pluck('slug')->toArray());
+                                        @endphp
+                                        <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                                            <div class="flex items-center justify-between">
+                                                <div>
+                                                    <p class="text-sm font-semibold text-slate-900">{{ $role->name }}</p>
+                                                    <p class="text-xs text-slate-500">{{ $role->slug }}</p>
+                                                </div>
+                                                <span class="text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
+                                                    {{ $role->guard_name }}
+                                                </span>
+                                            </div>
+
+                                            <input type="hidden" name="roles[{{ $role->slug }}][permissions][]" value="">
+
+                                            <div class="mt-4 grid gap-2 text-sm text-slate-700">
+                                                @foreach($permissions as $permission)
+                                                    <label class="flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm transition hover:border-blue-400">
+                                                        <input
+                                                            type="checkbox"
+                                                            name="roles[{{ $role->slug }}][permissions][]"
+                                                            value="{{ $permission->slug }}"
+                                                            class="h-4 w-4 accent-blue-600"
+                                                            @checked(in_array($permission->slug, (array) $assignedPermissions))>
+                                                        <span>{{ $permission->name }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </form>
+                        </div>
                     </div>
+                </div>
                 </div>
             </div>
         </form>

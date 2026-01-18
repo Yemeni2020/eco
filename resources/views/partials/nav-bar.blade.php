@@ -20,7 +20,8 @@
 
     $cartCount = $cartCount ?? 0;
 
-    $notificationUser = auth()->user();
+    $customerAuth = auth('customer');
+    $notificationUser = $customerAuth->user();
     $recentNotifications = $notificationUser
         ? $notificationUser->notifications()->latest()->limit(4)->get()
         : collect();
@@ -319,7 +320,7 @@
                     </div>
                 </div>
 
-                @auth
+                @auth('customer')
                     <div class="dropdown relative hidden lg:block">
                         <button type="button" data-dropdown-target="desktop-user-menu"
                             class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/60 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-blue-600 hover:text-blue-600 desktop-dropdown-toggle">
@@ -442,14 +443,14 @@
                         </div>
                         <div class="flex-1">
                             <div class="text-sm font-semibold text-slate-900">
-                                {{ auth()->check() ? auth()->user()->name : 'Welcome back' }}
+                                {{ $customerAuth->check() ? $customerAuth->user()->name : 'Welcome back' }}
                             </div>
                             <div class="text-xs text-slate-500">
-                                {{ auth()->check() ? auth()->user()->email : 'Sign in to manage your account.' }}
+                                {{ $customerAuth->check() ? $customerAuth->user()->email : 'Sign in to manage your account.' }}
                             </div>
                         </div>
                     </div>
-                    @auth
+                    @auth('customer')
                         <div class="mt-4 space-y-2 text-sm font-medium text-slate-700">
                             <a href="{{ $routeLocalized('account.dashboard') }}"
                                 class="block py-2 hover:text-blue-600 transition-colors">{{ __('site.nav.account') }}</a>
@@ -549,7 +550,7 @@
             </span>
             {{ __('site.nav.cart') }}
         </a>
-        <a href="{{ auth()->check() ? $routeLocalized('account.dashboard') : route('login') }}"
+        <a href="{{ $customerAuth->check() ? $routeLocalized('account.dashboard') : route('login') }}"
             class="nav-press group flex flex-col items-center gap-1 py-2 hover:text-blue-600 dark:hover:text-cyan-300 {{ $bottomProfileActive ? 'text-blue-600 dark:text-cyan-300' : '' }}">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none"
                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
