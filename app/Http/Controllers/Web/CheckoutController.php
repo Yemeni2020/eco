@@ -4,12 +4,18 @@ namespace App\Http\Controllers\Web;
 
 use App\Domain\Cart\Actions\GetCartAction;
 use App\Domain\Orders\Actions\QuoteTotalsAction;
+use App\Domain\Payments\Repositories\PaymentGatewaySettingsRepository;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class CheckoutController extends Controller
 {
-    public function index(Request $request, GetCartAction $getCartAction, QuoteTotalsAction $quoteTotalsAction)
+    public function index(
+        Request $request,
+        GetCartAction $getCartAction,
+        QuoteTotalsAction $quoteTotalsAction,
+        PaymentGatewaySettingsRepository $paymentGatewaySettingsRepository
+    ) {
     {
         $user = $request->user();
         $cart = $getCartAction->execute($user, $request->session()->getId());
@@ -33,6 +39,7 @@ class CheckoutController extends Controller
             'defaultAddress' => $defaultAddress,
             'itemsCount' => $cart->items->sum('qty'),
             'cartItems' => $cartItems,
+            'availablePaymentGateways' => $paymentGatewaySettingsRepository->enabledOptions(),
         ]);
     }
 }

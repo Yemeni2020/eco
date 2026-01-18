@@ -47,6 +47,13 @@
         }
     @endphp
 
+    @php
+        $firstGatewayOption = $availablePaymentGateways->first() ?? [];
+        $defaultPaymentGateway = $firstGatewayOption['gateway'] ?? 'credit';
+        $defaultPaymentLabel = $firstGatewayOption['label'] ?? 'Card';
+        $paymentGatewayLabels = $availablePaymentGateways->pluck('label', 'gateway');
+    @endphp
+
     
     <div id="applePayAlert"
         class="hidden relative isolate flex items-center gap-x-6 overflow-hidden bg-gray-800/50 px-6 py-2.5 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-white/10 sm:px-3.5 sm:before:flex-1">
@@ -374,7 +381,7 @@
                                 </svg>
                                 <span>Payment</span>
                             </div>
-                            <div id="paymentSummary" class="text-xs text-slate-500">Mada</div>
+                            <div id="paymentSummary" class="text-xs text-slate-500">{{ $defaultPaymentLabel }}</div>
                         </button>
 
                         <!-- payment panel -->
@@ -388,8 +395,8 @@
                                     <span class="flex items-center gap-2">
                                         <span id="paymentDropdownIcon"
                                             class="flex h-4 w-4 items-center justify-center text-slate-700"></span>
-                                        <span id="paymentDropdownText"
-                                            class="text-sm font-semibold text-slate-700">Mada</span>
+                                    <span id="paymentDropdownText"
+                                        class="text-sm font-semibold text-slate-700">{{ $defaultPaymentLabel }}</span>
                                     </span>
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500"
                                         viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -401,35 +408,54 @@
                                 <div id="paymentDropdownMenu"
                                     class="absolute left-0 right-0 z-20 mt-2 hidden rounded-xl border border-slate-200 bg-white p-2 shadow-lg">
                                     <div class="max-h-64 space-y-1 overflow-auto">
-                                        <button
-                                            class="payment-option apple-pay-option hidden w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2"
-                                            type="button" aria-pressed="false" data-payment="apple-pay"
-                                            data-label="Apple Pay">
-                                            <svg viewBox="0 0 24 24" class="h-4 w-4 text-slate-800"
-                                                fill="currentColor" aria-hidden="true">
-                                                <path
-                                                    d="M17.9 12.6c-.02-1.54 1.26-2.27 1.31-2.31-.72-1.06-1.84-1.2-2.24-1.22-.95-.1-1.86.56-2.34.56-.48 0-1.22-.55-2-.53-1.03.02-1.98.6-2.5 1.51-1.07 1.85-.27 4.57.77 6.07.5.73 1.1 1.56 1.89 1.53.76-.03 1.05-.49 1.97-.49.92 0 1.18.49 1.99.48.82-.02 1.34-.73 1.84-1.46.58-.84.82-1.65.83-1.69-.02-.01-1.6-.62-1.62-2.45Zm-1.53-4.23c.42-.5.7-1.2.62-1.9-.61.02-1.35.41-1.79.91-.39.45-.74 1.18-.65 1.87.68.05 1.38-.36 1.82-.88Z" />
-                                            </svg>
-                                            Apple Pay
-                                        </button>
+                                        @if($paymentGatewayLabels->has('applepay'))
+                                            <button
+                                                class="payment-option apple-pay-option hidden w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2 {{ $defaultPaymentGateway === 'applepay' ? 'is-active' : '' }}"
+                                                type="button"
+                                                aria-pressed="{{ $defaultPaymentGateway === 'applepay' ? 'true' : 'false' }}"
+                                                data-payment="apple-pay"
+                                                data-label="{{ $paymentGatewayLabels->get('applepay') }}">
+                                                <svg viewBox="0 0 24 24" class="h-4 w-4 text-slate-800" fill="currentColor" aria-hidden="true">
+                                                    <path
+                                                        d="M17.9 12.6c-.02-1.54 1.26-2.27 1.31-2.31-.72-1.06-1.84-1.2-2.24-1.22-.95-.1-1.86.56-2.34.56-.48 0-1.22-.55-2-.53-1.03.02-1.98.6-2.5 1.51-1.07 1.85-.27 4.57.77 6.07.5.73 1.1 1.56 1.89 1.53.76-.03 1.05-.49 1.97-.49.92 0 1.18.49 1.99.48.82-.02 1.34-.73 1.84-1.46.58-.84.82-1.65.83-1.69-.02-.01-1.6-.62-1.62-2.45Zm-1.53-4.23c.42-.5.7-1.2.62-1.9-.61.02-1.35.41-1.79.91-.39.45-.74 1.18-.65 1.87.68.05 1.38-.36 1.82-.88Z" />
+                                                </svg>
+                                                {{ $paymentGatewayLabels->get('applepay') }}
+                                            </button>
+                                        @endif
                                         <button
                                             class="payment-option google-pay-option hidden w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2"
                                             type="button" aria-pressed="false" data-payment="google-pay"
                                             data-label="Google Pay">
                                             Google Pay
                                         </button>
+                                        @if($paymentGatewayLabels->has('mada'))
+                                            <button
+                                                class="payment-option w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2 {{ $defaultPaymentGateway === 'mada' ? 'is-active' : '' }}"
+                                                type="button"
+                                                aria-pressed="{{ $defaultPaymentGateway === 'mada' ? 'true' : 'false' }}"
+                                                data-payment="mada"
+                                                data-label="{{ $paymentGatewayLabels->get('mada') }}">
+                                                <img class="h-4 w-auto"
+                                                    src="https://cdn.assets.salla.network/prod/stores/vendor/checkout/images/icons/pay-option-mada.svg"
+                                                    alt="mada">
+                                                {{ $paymentGatewayLabels->get('mada') }}
+                                            </button>
+                                        @endif
+                                        @if($paymentGatewayLabels->has('stcpay'))
+                                            <button
+                                                class="payment-option w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2 {{ $defaultPaymentGateway === 'stcpay' ? 'is-active' : '' }}"
+                                                type="button"
+                                                aria-pressed="{{ $defaultPaymentGateway === 'stcpay' ? 'true' : 'false' }}"
+                                                data-payment="stcpay"
+                                                data-label="{{ $paymentGatewayLabels->get('stcpay') }}">
+                                                {{ $paymentGatewayLabels->get('stcpay') }}
+                                            </button>
+                                        @endif
                                         <button
-                                            class="payment-option is-active w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2"
-                                            type="button" aria-pressed="true" data-payment="mada"
-                                            data-label="Mada">
-                                            <img class="h-4 w-auto"
-                                                src="https://cdn.assets.salla.network/prod/stores/vendor/checkout/images/icons/pay-option-mada.svg"
-                                                alt="mada">
-                                            Mada
-                                        </button>
-                                        <button
-                                            class="payment-option w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2"
-                                            type="button" aria-pressed="false" data-payment="credit"
+                                            class="payment-option w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold shadow-sm hover:border-slate-300 hover:bg-slate-50 transition inline-flex items-center gap-2 {{ $defaultPaymentGateway === 'credit' ? 'is-active' : '' }}"
+                                            type="button"
+                                            aria-pressed="{{ $defaultPaymentGateway === 'credit' ? 'true' : 'false' }}"
+                                            data-payment="credit"
                                             data-label="Card">
                                             <img class="h-4 w-auto"
                                                 src="https://cdn.assets.salla.network/prod/stores/vendor/checkout/images/icons/pay-option-credit-2.svg"
