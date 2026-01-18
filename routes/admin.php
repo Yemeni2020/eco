@@ -1,16 +1,25 @@
 <?php
 
+use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Admin\ColorController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['web', 'setLocale'])->group(function () {
-    Route::view('admin/login', 'admin.auth.login')
-        ->middleware('guest')
-        ->name('admin.login');
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('admin/login', [AdminAuthController::class, 'showLoginForm'])
+            ->name('admin.login');
+        Route::post('admin/login', [AdminAuthController::class, 'login'])
+            ->name('admin.login.submit');
+    });
 
-    Route::middleware(['auth', 'verified', 'admin'])->group(function () {
+    Route::post('admin/logout', [AdminAuthController::class, 'logout'])
+        ->middleware('auth:admin')
+        ->name('admin.logout');
+
+    Route::middleware(['auth:admin', 'admin'])->group(function () {
         Route::view('admin', 'admin.dashboard')
             ->name('admin');
 
@@ -47,8 +56,12 @@ Route::middleware(['web', 'setLocale'])->group(function () {
 
         Route::view('admin/orders', 'admin.orders.index')
             ->name('admin.orders.index');
-        Route::view('admin/customers', 'admin.customers.index')
+        Route::get('admin/customers', [CustomerController::class, 'index'])
             ->name('admin.customers.index');
+        Route::get('admin/customers/{customer}', [CustomerController::class, 'show'])
+            ->name('admin.customers.show');
+        Route::post('admin/customers/{customer}/block', [CustomerController::class, 'toggleBlock'])
+            ->name('admin.customers.block');
         Route::view('admin/reports', 'admin.reports.index')
             ->name('admin.reports.index');
         Route::get('admin/settings', [SettingsController::class, 'index'])
@@ -57,5 +70,7 @@ Route::middleware(['web', 'setLocale'])->group(function () {
             ->name('admin.settings.seo');
         Route::post('admin/settings/security', [SettingsController::class, 'updateSecurity'])
             ->name('admin.settings.security');
+        Route::post('admin/settings/payments', [SettingsController::class, 'updatePayments'])
+            ->name('admin.settings.payments');
     });
 });

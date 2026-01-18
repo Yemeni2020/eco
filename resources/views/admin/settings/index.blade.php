@@ -40,6 +40,11 @@
                 Notifications
             </button>
 
+            <button type="button" data-tab-target="payments"
+                class="tab-toggle rounded-full px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus:outline-none">
+                Payment Gateways
+            </button>
+
             <button type="button" data-tab-target="seo"
                 class="tab-toggle rounded-full px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus:outline-none">
                 SEO
@@ -48,6 +53,15 @@
 
         {{-- Content Grid (Left = store/shipping/notifications/seo) | (Right = operations) --}}
         <form id="settings-form" class="grid gap-6 xl:grid-cols-[2fr_1fr]">
+            @php
+                $paymentGatewayPanels = collect($paymentGatewayDefinitions)->map(function ($definition, $gateway) use ($paymentGatewaySettings) {
+                    return [
+                        'gateway' => $gateway,
+                        'definition' => $definition,
+                        'setting' => $paymentGatewaySettings[$gateway] ?? null,
+                    ];
+                });
+            @endphp
             {{-- LEFT COLUMN --}}
             <div class="flex flex-col gap-6" data-col="left">
                 {{-- Store --}}
@@ -108,6 +122,122 @@
                         <flux:switch name="notify_orders" label="Order updates" checked />
                         <flux:switch name="notify_stock" label="Low stock alerts" checked />
                         <flux:switch name="notify_reviews" label="New reviews" />
+                    </div>
+                </div>
+
+                {{-- Payment Gateways --}}
+                <div class="tab-panel hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900" data-tab="payments">
+                    <div class="flex items-center justify-between gap-4">
+                        <div>
+                            <flux:heading size="lg" level="2">Payment gateways</flux:heading>
+                            <flux:text>Enable the payment providers you process orders with and manage credentials securely.</flux:text>
+                        </div>
+                        <flux:button variant="primary"
+                            type="submit"
+                            formaction="{{ route('admin.settings.payments') }}"
+                            formmethod="POST">
+                            Save payment gateways
+                        </flux:button>
+                    </div>
+
+                    @csrf
+
+                    @if(session('payment_settings_status'))
+                        <div class="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">
+                            {{ session('payment_settings_status') }}
+                        </div>
+                    @endif
+
+                    <div class="mt-6 space-y-4">
+                        @foreach($paymentGatewayPanels as $panel)
+                            @php
+                                $gatewayKey = $panel['gateway'];
+                                $definition = $panel['definition'];
+                                $setting = $panel['setting'];
+                                $displayNameValue = old("gateways.{$gatewayKey}.display_name", $setting?->display_name ?? $definition['label']);
+                                $isEnabledValue = old("gateways.{$gatewayKey}.is_enabled", $setting?->is_enabled ? '1' : '0');
+                                $sandboxValue = old("gateways.{$gatewayKey}.sandbox_mode", $setting?->sandbox_mode ? '1' : '0');
+                            @endphp
+
+                            <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
+                                <div class="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                    <div>
+                                        <h3 class="text-sm font-semibold text-slate-900">{{ $definition['label'] }}</h3>
+                                        <p class="text-xs text-slate-500">Configure {{ $definition['label'] }} gateway settings and credentials.</p>
+                                    </div>
+
+                                    <div class="flex flex-col gap-4 text-xs text-slate-500">
+                                        <div class="flex items-center gap-3">
+                                            <span class="uppercase tracking-[0.3em] text-[11px]">Enabled</span>
+                                            <input type="hidden" name="gateways[{{ $gatewayKey }}][is_enabled]" value="0">
+                                            <label class="relative inline-flex cursor-pointer items-center">
+                                                <input type="checkbox"
+                                                    class="sr-only peer"
+                                                    name="gateways[{{ $gatewayKey }}][is_enabled]"
+                                                    value="1"
+                                                    @checked($isEnabledValue === '1')>
+                                                <div class="h-6 w-12 rounded-full bg-slate-200 transition peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500"></div>
+                                                <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-6"></span>
+                                            </label>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <span class="uppercase tracking-[0.3em] text-[11px]">Sandbox</span>
+                                            <input type="hidden" name="gateways[{{ $gatewayKey }}][sandbox_mode]" value="0">
+                                            <label class="relative inline-flex cursor-pointer items-center">
+                                                <input type="checkbox"
+                                                    class="sr-only peer"
+                                                    name="gateways[{{ $gatewayKey }}][sandbox_mode]"
+                                                    value="1"
+                                                    @checked($sandboxValue === '1')>
+                                                <div class="h-6 w-12 rounded-full bg-slate-200 transition peer-checked:bg-blue-600 peer-focus:ring-2 peer-focus:ring-blue-500"></div>
+                                                <span class="absolute left-1 top-1 h-4 w-4 rounded-full bg-white transition peer-checked:translate-x-6"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                                    <flux:input
+                                        name="gateways[{{ $gatewayKey }}][display_name]"
+                                        label="Display name"
+                                        value="{{ $displayNameValue }}"
+                                    />
+                                </div>
+
+                                @if(!empty($definition['public_fields']))
+                                    <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                                        @foreach($definition['public_fields'] as $field => $label)
+                                            <flux:input
+                                                name="gateways[{{ $gatewayKey }}][{{ $field }}]"
+                                                label="{{ $label }}"
+                                                value="{{ old("gateways.{$gatewayKey}.{$field}", $setting?->getCredential($field)) }}"
+                                            />
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                @if(!empty($definition['secret_fields']))
+                                    <div class="mt-4 grid gap-4 lg:grid-cols-2">
+                                        @foreach($definition['secret_fields'] as $field => $label)
+                                            @php
+                                                $secretValue = old("gateways.{$gatewayKey}.{$field}");
+                                                if ($secretValue === null && $setting?->hasCredential($field)) {
+                                                    $secretValue = \App\Models\PaymentGatewaySetting::SECRET_PLACEHOLDER;
+                                                }
+                                            @endphp
+                                            <flux:input
+                                                type="password"
+                                                name="gateways[{{ $gatewayKey }}][{{ $field }}]"
+                                                label="{{ $label }}"
+                                                value="{{ $secretValue ?? '' }}"
+                                                placeholder="••••••••"
+                                            />
+                                        @endforeach
+                                    </div>
+                                    <p class="mt-2 text-xs text-slate-400">Leave blank to keep stored secrets unchanged.</p>
+                                @endif
+                            </div>
+                        @endforeach
                     </div>
                 </div>
 

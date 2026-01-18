@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Payments\Repositories\PaymentGatewaySettingsRepository;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SecuritySettingRequest;
 use App\Http\Requests\Admin\SeoSettingRequest;
+use App\Http\Requests\Admin\UpdatePaymentGatewaysRequest;
 use App\Models\SecuritySetting;
 use App\Models\SeoSetting;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +14,10 @@ use Illuminate\View\View;
 
 class SettingsController extends Controller
 {
+    public function __construct(private PaymentGatewaySettingsRepository $gatewaySettingsRepository)
+    {
+    }
+
     public function index(): View
     {
         $seoSetting = SeoSetting::firstOrNew(['slug' => 'global']);
@@ -27,9 +33,16 @@ class SettingsController extends Controller
 
         $securitySetting = SecuritySetting::firstOrNew(['slug' => 'global']);
 
+        $gatewayDefinitions = $this->gatewaySettingsRepository->supportedGateways();
+        $gatewaySettings = collect($gatewayDefinitions)
+            ->mapWithKeys(fn ($definition, $gateway) => [$gateway => $this->gatewaySettingsRepository->get($gateway)]);
+
         return view('admin.settings.index', [
             'seoSetting' => $seoSetting,
             'securitySetting' => $securitySetting,
+            'paymentGatewayDefinitions' => $gatewayDefinitions,
+            'paymentGatewaySettings' => $gatewaySettings,
+            'activePaymentGateway' => $gatewaySettings->first(fn ($setting) => $setting->is_enabled)?->gateway ?? array_key_first($gatewayDefinitions),
         ]);
     }
 
@@ -86,5 +99,14 @@ class SettingsController extends Controller
         );
 
         return back()->with('status', 'Security settings saved.');
+    }
+
+    public function updatePayments(UpdatePaymentGatewaysRequest $request): RedirectResponse
+    {
+        $payload = $request->validated()['gateways'] ?? [];
+
+        $this->gatewaySettingsRepository->updateFromPayload($payload);
+
+        return back()->with('payment_settings_status', 'Payment gateway settings saved.');
     }
 }
