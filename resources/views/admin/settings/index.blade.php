@@ -49,6 +49,11 @@
                 class="tab-toggle rounded-full px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus:outline-none">
                 SEO
             </button>
+
+            <button type="button" data-tab-target="footer"
+                class="tab-toggle rounded-full px-4 py-2 text-sm font-semibold text-slate-800 transition hover:bg-slate-100 focus:outline-none">
+                Footer
+            </button>
         </div>
 
         {{-- Content Grid (Left = store/shipping/notifications/seo) | (Right = operations) --}}
@@ -303,6 +308,176 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="tab-panel hidden rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900" data-tab="footer">
+                    @php
+                        $footerValue = $footerSetting->value ?? [];
+                        $footerTranslations = $footerValue['translations'] ?? [];
+                        $locales = ['en' => 'English', 'ar' => 'العربية'];
+                        $socialProviders = ['facebook', 'twitter', 'instagram', 'linkedin'];
+                    @endphp
+
+                    <form action="{{ route('admin.settings.footer.update') }}" method="POST" class="space-y-6">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <flux:heading size="lg" level="2">Footer content</flux:heading>
+                                <flux:text>Manage both English and Arabic versions of the storefront footer.</flux:text>
+                            </div>
+                            <flux:button variant="primary" type="submit">
+                                Save footer
+                            </flux:button>
+                        </div>
+
+                        @if(session('footer_status'))
+                            <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-semibold text-emerald-700">
+                                {{ session('footer_status') }}
+                            </div>
+                        @endif
+
+                        <div class="flex gap-2">
+                            @foreach($locales as $code => $name)
+                                <button type="button"
+                                    class="locale-toggle flex-1 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition"
+                                    data-footer-locale="{{ $code }}">
+                                    {{ $name }}
+                                </button>
+                            @endforeach
+                        </div>
+
+                        @foreach($locales as $code => $name)
+                            @php
+                                $payload = old("translations.{$code}", $footerTranslations[$code] ?? []);
+                                $links = $payload['links'] ?? [];
+                            @endphp
+
+                            <div class="footer-locale-panel space-y-4 rounded-2xl border border-slate-100 bg-slate-50 p-4" data-footer-panel="{{ $code }}" @if($code !== 'en') hidden @endif>
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Title</label>
+                                        <input
+                                            type="text"
+                                            name="translations[{{ $code }}][company][name]"
+                                            value="{{ $payload['company']['name'] ?? '' }}"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                            autocomplete="off"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Description</label>
+                                        <input
+                                            type="text"
+                                            name="translations[{{ $code }}][company][description]"
+                                            value="{{ $payload['company']['description'] ?? '' }}"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                            autocomplete="off"
+                                        >
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <p class="text-sm font-semibold text-slate-700">Links</p>
+                                        <button type="button"
+                                            class="text-xs font-semibold text-blue-600 hover:text-blue-800"
+                                            data-add-footer-link
+                                            data-locale="{{ $code }}">
+                                            + Add link
+                                        </button>
+                                    </div>
+
+                                    <div class="space-y-2" data-links-container="{{ $code }}">
+                                        @foreach($links as $index => $link)
+                                            <div class="grid gap-2 rounded-lg border border-slate-200 bg-white p-3 lg:grid-cols-5" data-link-row>
+                                                <input
+                                                    type="text"
+                                                    name="translations[{{ $code }}][links][{{ $index }}][label]"
+                                                    value="{{ $link['label'] ?? '' }}"
+                                                    class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                                    placeholder="Label"
+                                                >
+                                                <input
+                                                    type="url"
+                                                    name="translations[{{ $code }}][links][{{ $index }}][url]"
+                                                    value="{{ $link['url'] ?? '' }}"
+                                                    class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                                    placeholder="https://example.com"
+                                                >
+                                                <button type="button" class="col-span-1 text-sm font-semibold text-rose-600 hover:text-rose-800" data-remove-link>
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="grid gap-4 md:grid-cols-2">
+                                    <div>
+                                        <label class="text-sm font-semibold text-slate-700">Contact phone</label>
+                                        <input
+                                            type="text"
+                                            name="translations[{{ $code }}][contact][phone]"
+                                            value="{{ $payload['contact']['phone'] ?? '' }}"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                        >
+                                    </div>
+                                    <div>
+                                        <label class="text-sm font-semibold text-slate-700">Contact email</label>
+                                        <input
+                                            type="email"
+                                            name="translations[{{ $code }}][contact][email]"
+                                            value="{{ $payload['contact']['email'] ?? '' }}"
+                                            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                        >
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-semibold text-slate-700">WhatsApp/contact link</label>
+                                    <input
+                                        type="url"
+                                        name="translations[{{ $code }}][contact][whatsapp]"
+                                        value="{{ $payload['contact']['whatsapp'] ?? '' }}"
+                                        class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                        placeholder="https://wa.me/..."
+                                    >
+                                </div>
+
+                                <div class="grid gap-3 md:grid-cols-2">
+                                    @foreach($socialProviders as $provider)
+                                        <div>
+                                            <label class="text-sm font-semibold text-slate-700">{{ ucfirst($provider) }} link</label>
+                                            <input
+                                                type="url"
+                                                name="translations[{{ $code }}][social][{{ $provider }}]"
+                                                value="{{ $payload['social'][$provider] ?? '' }}"
+                                                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                                placeholder="https://{{ $provider }}.com/..."
+                                            >
+                                        </div>
+                                    @endforeach
+                                </div>
+
+                                <div>
+                                    <label class="text-sm font-semibold text-slate-700">Bottom text</label>
+                                    <input
+                                        type="text"
+                                        name="translations[{{ $code }}][bottom_text]"
+                                        value="{{ $payload['bottom_text'] ?? '' }}"
+                                        class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none"
+                                        placeholder="© Company 2025"
+                                    >
+                                </div>
+                            </div>
+                        @endforeach
+
+                        <div class="text-xs text-slate-500">
+                            Both locales must be filled before saving; empty links are ignored.
+                        </div>
+                    </form>
+                </div>
             </div>
 
             {{-- RIGHT COLUMN (Operations) --}}
@@ -465,8 +640,12 @@
       }
     };
 
+    const serverTab = @json(session('active_tab', null));
     const defaultTab =
-      [...tabs].find(t => t.getAttribute('aria-selected') === 'true')?.getAttribute('data-tab-target')
+      (serverTab && [...tabs].some(t => t.getAttribute('data-tab-target') === serverTab)
+        ? serverTab
+        : null)
+      ?? [...tabs].find(t => t.getAttribute('aria-selected') === 'true')?.getAttribute('data-tab-target')
       ?? tabs[0].getAttribute('data-tab-target')
       ?? 'store';
 
@@ -483,7 +662,89 @@
     });
   }
 
-  document.addEventListener('DOMContentLoaded', initSettingsTabs);
-  document.addEventListener('livewire:navigated', initSettingsTabs);
+document.addEventListener('DOMContentLoaded', initSettingsTabs);
+document.addEventListener('livewire:navigated', initSettingsTabs);
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const localeButtons = document.querySelectorAll('[data-footer-locale]');
+    const localePanels = document.querySelectorAll('[data-footer-panel]');
+    const activeClass = 'bg-slate-900 text-white shadow-lg';
+
+    const showLocale = (locale) => {
+      localePanels.forEach((panel) => panel.hidden = panel.getAttribute('data-footer-panel') !== locale);
+      localeButtons.forEach((button) => {
+        const selected = button.getAttribute('data-footer-locale') === locale;
+        button.classList.toggle('bg-slate-900', selected);
+        button.classList.toggle('text-white', selected);
+        button.classList.toggle('shadow-lg', selected);
+      });
+    };
+
+    localeButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        showLocale(button.getAttribute('data-footer-locale'));
+      });
+    });
+
+    if (localeButtons.length) {
+      showLocale(localeButtons[0].getAttribute('data-footer-locale'));
+    }
+
+    const createLinkRow = (locale, index, label = '', url = '') => {
+      const row = document.createElement('div');
+      row.setAttribute('data-link-row', '');
+      row.className = 'grid gap-2 rounded-lg border border-slate-200 bg-white p-3 lg:grid-cols-5';
+
+      const labelInput = document.createElement('input');
+      labelInput.type = 'text';
+      labelInput.name = `translations[${locale}][links][${index}][label]`;
+      labelInput.placeholder = 'Label';
+      labelInput.value = label;
+      labelInput.className = 'rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none';
+
+      const urlInput = document.createElement('input');
+      urlInput.type = 'url';
+      urlInput.name = `translations[${locale}][links][${index}][url]`;
+      urlInput.placeholder = 'https://example.com';
+      urlInput.value = url;
+      urlInput.className = 'rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:border-blue-500 focus:outline-none';
+
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.innerText = 'Remove';
+      removeButton.className = 'col-span-1 text-sm font-semibold text-rose-600 hover:text-rose-800';
+      removeButton.setAttribute('data-remove-link', '');
+      removeButton.addEventListener('click', () => row.remove());
+
+      row.appendChild(labelInput);
+      row.appendChild(urlInput);
+      row.appendChild(removeButton);
+
+      return row;
+    };
+
+    document.querySelectorAll('[data-add-footer-link]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const locale = button.getAttribute('data-locale');
+        const container = document.querySelector(`[data-links-container="${locale}"]`);
+        if (!container) {
+          return;
+        }
+
+        const index = container.querySelectorAll('[data-link-row]').length;
+        const row = createLinkRow(locale, index);
+        container.appendChild(row);
+      });
+    });
+
+    document.body.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target.matches('[data-remove-link]')) {
+        target.closest('[data-link-row]')?.remove();
+      }
+    });
+  });
 </script>
 @endpush
