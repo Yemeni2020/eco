@@ -9,11 +9,13 @@
             </div>
             <div class="flex flex-wrap gap-3">
                 <flux:button variant="outline" :href="route('admin.categories.index')" wire:navigate>Back to categories</flux:button>
-                <flux:button variant="primary" icon="check" icon:variant="outline">Save category</flux:button>
+                <flux:button variant="primary" icon="check" icon:variant="outline" type="submit" form="category-form">
+                    Save category
+                </flux:button>
             </div>
         </div>
 
-        <form action="{{ route('admin.categories.store') }}" method="POST" class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+        <form id="category-form" action="{{ route('admin.categories.store') }}" method="POST" class="grid gap-6 lg:grid-cols-[3fr_1.2fr]">
             <div class="rounded-xl border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                 <div class="flex flex-col gap-4">
                     <flux:heading size="lg" level="2">Category details</flux:heading>
@@ -35,26 +37,35 @@
 
                     @csrf
 
-                    @foreach ($locales as $code)
-                        <div class="locale-panel mt-4 space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
-                            data-category-locale-panel="{{ $code }}" @if ($code !== $defaultLocale) hidden @endif>
-                            <flux:input
-                                id="categoryName{{ ucfirst($code) }}Input"
-                                name="name[{{ $code }}]"
-                                label="Name ({{ strtoupper($code) }})"
-                                placeholder="Lighting"
-                                value="{{ old("name.{$code}") }}"
-                                @if ($code === $defaultLocale) required @endif
-                            />
-                            <flux:input
-                                id="categorySlug{{ ucfirst($code) }}Input"
-                                name="slug[{{ $code }}]"
-                                label="Slug ({{ strtoupper($code) }})"
-                                placeholder="lighting"
-                                value="{{ old("slug.{$code}") }}"
-                            />
-                        </div>
-                    @endforeach
+                    <div class="mt-4 space-y-5">
+                        @foreach ($locales as $code)
+                            <div class="locale-panel space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 shadow-sm"
+                                data-category-locale-panel="{{ $code }}" @if ($code !== $defaultLocale) hidden @endif>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                                        {{ strtoupper($code) }}
+                                    </span>
+                                    <span class="text-xs text-slate-400">{{ $localeNames[$code] ?? ucfirst($code) }}</span>
+                                </div>
+                                <flux:input
+                                    id="categoryName{{ ucfirst($code) }}Input"
+                                    name="name[{{ $code }}]"
+                                    label="Name"
+                                    placeholder="Lighting"
+                                    value="{{ old("name.{$code}") }}"
+                                    @if ($code === $defaultLocale) required @endif
+                                />
+                                <flux:input
+                                    id="categorySlug{{ ucfirst($code) }}Input"
+                                    name="slug[{{ $code }}]"
+                                    label="Slug"
+                                    placeholder="lighting"
+                                    value="{{ old("slug.{$code}") }}"
+                                />
+                            </div>
+                        @endforeach
+                    </div>
+
                     <flux:textarea name="description" label="Description" rows="5" placeholder="Describe this category for internal reference."></flux:textarea>
                     <flux:select name="parent" label="Parent category">
                         <flux:select.option value="">No parent</flux:select.option>
