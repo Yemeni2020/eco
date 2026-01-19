@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ColorController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\ProductController;
@@ -47,12 +48,16 @@ Route::middleware(['web', 'setLocale'])->group(function () {
         Route::delete('admin/colors/{color}', [ColorController::class, 'destroy'])
             ->name('admin.colors.destroy');
 
-        Route::view('admin/categories', 'admin.categories.index')
+        Route::get('admin/categories', [CategoryController::class, 'index'])
             ->name('admin.categories.index');
-        Route::view('admin/categories/create', 'admin.categories.create')
+        Route::get('admin/categories/create', [CategoryController::class, 'create'])
             ->name('admin.categories.create');
-        Route::view('admin/categories/{category}/edit', 'admin.categories.edit')
+        Route::post('admin/categories', [CategoryController::class, 'store'])
+            ->name('admin.categories.store');
+        Route::get('admin/categories/{category}/edit', [CategoryController::class, 'edit'])
             ->name('admin.categories.edit');
+        Route::put('admin/categories/{category}', [CategoryController::class, 'update'])
+            ->name('admin.categories.update');
 
         Route::view('admin/orders', 'admin.orders.index')
             ->name('admin.orders.index');
@@ -74,5 +79,9 @@ Route::middleware(['web', 'setLocale'])->group(function () {
             ->name('admin.settings.roles');
         Route::post('admin/settings/payments', [SettingsController::class, 'updatePayments'])
             ->name('admin.settings.payments');
+        Route::get('admin/settings/footer', [SettingsController::class, 'footer'])
+            ->name('admin.settings.footer');
+        Route::put('admin/settings/footer', [SettingsController::class, 'updateFooter'])
+            ->name('admin.settings.footer.update');
     });
 });
