@@ -7,11 +7,13 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\RolePermissionRequest;
 use App\Http\Requests\Admin\SecuritySettingRequest;
 use App\Http\Requests\Admin\SeoSettingRequest;
+use App\Http\Requests\Admin\UpdateFooterSettingsRequest;
 use App\Http\Requests\Admin\UpdatePaymentGatewaysRequest;
 use App\Models\Permission;
 use App\Models\Role;
 use App\Models\SecuritySetting;
 use App\Models\SeoSetting;
+use App\Models\SiteSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -39,6 +41,7 @@ class SettingsController extends Controller
         $gatewayDefinitions = $this->gatewaySettingsRepository->supportedGateways();
         $gatewaySettings = collect($gatewayDefinitions)
             ->mapWithKeys(fn ($definition, $gateway) => [$gateway => $this->gatewaySettingsRepository->get($gateway)]);
+        $footerSetting = SiteSetting::firstOrNew(['key' => 'footer']);
 
         $roles = Role::with('permissions')->get();
         $permissions = Permission::orderBy('name')->get();
@@ -50,7 +53,9 @@ class SettingsController extends Controller
             'paymentGatewaySettings' => $gatewaySettings,
             'activePaymentGateway' => $gatewaySettings->first(fn ($setting) => $setting->is_enabled)?->gateway ?? array_key_first($gatewayDefinitions),
             'roles' => $roles,
+            'roles' => $roles,
             'permissions' => $permissions,
+            'footerSetting' => $footerSetting,
         ]);
     }
 
@@ -134,5 +139,28 @@ class SettingsController extends Controller
         }
 
         return back()->with('roles_status', 'Role permissions updated.');
+    }
+
+    public function footer(): RedirectResponse
+    {
+        return redirect()->route('admin.settings.index')->with('active_tab', 'footer');
+    }
+
+    public function updateFooter(UpdateFooterSettingsRequest $request): RedirectResponse
+    {
+        $footerSetting = SiteSetting::firstOrNew(['key' => 'footer']);
+        $value = $footerSetting->value ?? [];
+        $payload = $request->footerPayload();
+
+        $value['translations'] = $payload['translations'];
+        $value['default_locale'] = $payload['default_locale'] ?? ($value['default_locale'] ?? 'en');
+        $footerSetting->value = $value;
+        $footerSetting->save();
+
+        app()->forgetInstance(\App\Services\SiteContent::class);
+
+        return redirect()->route('admin.settings.index')
+            ->with('footer_status', 'Footer settings saved.')
+            ->with('active_tab', 'footer');
     }
 }
